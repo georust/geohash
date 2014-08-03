@@ -1,0 +1,10 @@
+[package]
+
+name = "geohash.rs"
+version = "0.1.0"
+authors = [ "sunng@about.me" ]
+
+[[lib]]
+
+name = "geohash"
+path = "src/lib.rs"
