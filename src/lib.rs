@@ -6,7 +6,13 @@
 #[cfg(test)]
 use std::num::abs;
 
-static BASE32_CODES: &'static str  = "0123456789bcdefghjkmnpqrstuvwxyz";
+//static BASE32_CODES: &'static str  = "0123456789bcdefghjkmnpqrstuvwxyz";
+static BASE32_CODES: &'static [char] =
+    &['0', '1', '2', '3', '4', '5', '6', '7',
+      '8', '9', 'b', 'c', 'd', 'e', 'f', 'g',
+      'h', 'j', 'k', 'm', 'n', 'p', 'q', 'r',
+      's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
+
 pub fn encode(lat: f32, lon: f32, num_chars: uint) -> String {
     let mut out: String = String::new();
 
@@ -18,8 +24,6 @@ pub fn encode(lat: f32, lon: f32, num_chars: uint) -> String {
     let mut max_lon = 180f32;
     let mut min_lon = -180f32;
     let mut mid: f32;
-
-    let codes_vec: Vec<char> = BASE32_CODES.chars().collect();
 
     while out.len() < num_chars {
         if  bits_total % 2 == 0 {
@@ -46,7 +50,7 @@ pub fn encode(lat: f32, lon: f32, num_chars: uint) -> String {
         bits_total += 1;
 
         if bits == 5 {
-            let code: char = codes_vec[hash_value];
+            let code: char = BASE32_CODES[hash_value];
             out.push_char(code);
             bits = 0;
             hash_value = 0;
@@ -59,7 +63,7 @@ trait Indexable<T: Eq> {
     fn index_of(&self, item:T) -> uint;
 }
 
-impl<T: Eq> Indexable<T> for std::vec::Vec<T> {
+impl<'a, T: Eq> Indexable<T> for &'a [T] {
     fn index_of(&self, item:T) -> uint {
         for c in range(0, self.len()) {
             if item == self[c] {
@@ -79,10 +83,9 @@ pub fn decode_bbox(hash_str: &str) -> (f32, f32, f32, f32){
     let mut mid: f32;
     let mut hash_value: uint;
 
-    let codes_vec: Vec<char> = BASE32_CODES.chars().collect();
     let chars: Vec<char> = hash_str.chars().collect();
     for c in chars.move_iter() {
-        hash_value = codes_vec.index_of(c);
+        hash_value = BASE32_CODES.index_of(c);
 
         for bs in range(0, 5) {
             let bit = (hash_value >> (4 - bs)) & 1u;
