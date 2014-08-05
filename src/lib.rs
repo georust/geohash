@@ -6,13 +6,21 @@
 #[cfg(test)]
 use std::num::abs;
 
-//static BASE32_CODES: &'static str  = "0123456789bcdefghjkmnpqrstuvwxyz";
 static BASE32_CODES: &'static [char] =
     &['0', '1', '2', '3', '4', '5', '6', '7',
       '8', '9', 'b', 'c', 'd', 'e', 'f', 'g',
       'h', 'j', 'k', 'm', 'n', 'p', 'q', 'r',
       's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
 
+/// ### Encode latitude, longitude into geohash string
+///
+/// Parameters:
+/// * `latitude`
+/// * `longitude`
+/// * `num_chars`: how many characters to encode
+///
+/// Returns:
+/// Geohash encoded `String`
 pub fn encode(lat: f32, lon: f32, num_chars: uint) -> String {
     let mut out: String = String::new();
 
@@ -74,6 +82,17 @@ impl<'a, T: Eq> Indexable<T> for &'a [T] {
     }
 }
 
+/// ### Encode latitude, longitude into geohash string
+///
+/// Parameters:
+/// Geohash encoded `&str`
+///
+/// Returns:
+/// A four-element tuple describs a bound box:
+/// * min_lat
+/// * max_lat
+/// * min_lon
+/// * max_lon
 pub fn decode_bbox(hash_str: &str) -> (f32, f32, f32, f32){
     let mut is_lon = true;
     let mut max_lat = 90f32;
@@ -113,6 +132,17 @@ pub fn decode_bbox(hash_str: &str) -> (f32, f32, f32, f32){
     (min_lat, max_lat, min_lon, max_lon)
 }
 
+/// ### Encode latitude, longitude into geohash string
+///
+/// Parameters:
+/// Geohash encoded `&str`
+///
+/// Returns:
+/// A four-element tuple describs a bound box:
+/// * latitude
+/// * longitude
+/// * latitude error
+/// * longitude error
 pub fn decode(hash_str: &str) -> (f32, f32, f32, f32) {
     let (lat0, lat1, lon0, lon1) = decode_bbox(hash_str);
     ((lat1+lat0)/2f32, (lon1+lon0)/2f32, (lat1-lat0)/2f32, (lon1-lon0)/2f32)
