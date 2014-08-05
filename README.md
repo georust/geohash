@@ -18,6 +18,8 @@ git = "https://github.com/sunng87/geohash.rs.git"
 ### Rust
 
 ```rust
+extern crate geohash;
+
 use geohash::{encode, decode}
 
 fn main() {
