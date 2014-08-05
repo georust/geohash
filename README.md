@@ -12,7 +12,7 @@ Geohash.rs is a Rust library for Geohash algorithm. Ported from my [node-geohash
 
 [dependencies.geohash]
 
-git = https://github.com/sunng87/geohash.rs.git
+git = "https://github.com/sunng87/geohash.rs.git"
 ```
 
 ### Rust
