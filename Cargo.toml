@@ -1,6 +1,6 @@
 [package]
 
-name = "geohash.rs"
+name = "geohash"
 version = "0.1.0"
 authors = [ "sunng@about.me" ]
 
