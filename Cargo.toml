@@ -4,7 +4,7 @@ name = "geohash"
 version = "0.1.0"
 authors = [ "sunng@about.me" ]
 
-[[lib]]
+[lib]
 
 name = "geohash"
 path = "src/lib.rs"

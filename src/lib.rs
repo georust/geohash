@@ -59,7 +59,7 @@ pub fn encode(lat: f32, lon: f32, num_chars: uint) -> String {
 
         if bits == 5 {
             let code: char = BASE32_CODES[hash_value];
-            out.push_char(code);
+            out.push(code);
             bits = 0;
             hash_value = 0;
         }
@@ -103,7 +103,7 @@ pub fn decode_bbox(hash_str: &str) -> (f32, f32, f32, f32){
     let mut hash_value: uint;
 
     let chars: Vec<char> = hash_str.chars().collect();
-    for c in chars.move_iter() {
+    for c in chars.into_iter() {
         hash_value = BASE32_CODES.index_of(c);
 
         for bs in range(0, 5) {
