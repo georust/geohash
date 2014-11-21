@@ -4,7 +4,7 @@
 #![crate_type = "rlib"]
 
 #[cfg(test)]
-use std::num::abs;
+use std::num::FloatMath;
 
 static BASE32_CODES: &'static [char] =
     &['0', '1', '2', '3', '4', '5', '6', '7',
@@ -159,6 +159,6 @@ fn test_decode() {
     assert_eq!(decode_bbox("ww8p1r4t8"),
                (37.832367f32, 37.832409f32, 112.558365f32, 112.558411f32));
     let (lat, lon, _, _) = decode("ww8p1r4t8");
-    assert_eq!(abs(lat - 37.8324f32) < 1e-4f32, true);
-    assert_eq!(abs(lon - 112.5584f32) < 1e-4f32, true);
+    assert_eq!(FloatMath::abs_sub(lat, 37.8324f32) < 1e-4f32, true);
+    assert_eq!(FloatMath::abs_sub(lon, 112.5584f32) < 1e-4f32, true);
 }
