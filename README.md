@@ -10,9 +10,9 @@ Geohash.rs is a Rust library for Geohash algorithm. Ported from my [node-geohash
 
 ```toml
 
-[dependencies.geohash]
+[dependencies]
 
-git = "https://github.com/sunng87/geohash.rs.git"
+geohash = "~0.1.1"
 ```
 
 ### Rust
@@ -32,4 +32,3 @@ fn main() {
 ## License
 
 Geohash.rs is open sourced under MIT License, of course.
-
