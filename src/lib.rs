@@ -1,6 +1,4 @@
 #![crate_name = "geohash"]
-#![comment = "A geohash library for Rust"]
-#![license = "MIT"]
 #![crate_type = "rlib"]
 
 #[cfg(test)]
