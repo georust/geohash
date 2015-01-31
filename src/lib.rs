@@ -1,6 +1,6 @@
-#![allow(unstable)]
-#![crate_name = "geohash"]
-#![crate_type = "rlib"]
+#![feature(core)]
+#![cfg(test)]
+#![feature(std_misc, collections)]
 
 static BASE32_CODES: &'static [char] =
     &['0', '1', '2', '3', '4', '5', '6', '7',
