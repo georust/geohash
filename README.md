@@ -1,8 +1,8 @@
 # geohash.rs
 
-Geohash.rs is a Rust library for Geohash algorithm. Ported from my [node-geohash](http://github.com/sunng87/node-geohash) module.
+Geohash.rs is a Rust library for Geohash algorithm. Ported from [node-geohash](http://github.com/sunng87/node-geohash) module.
 
-[![Build Status](https://travis-ci.org/sunng87/geohash.rs.svg)](https://travis-ci.org/sunng87/geohash.rs)
+[![Build Status](https://travis-ci.org/georust/geohash.rs.svg)](https://travis-ci.org/georust/geohash.rs)
 
 ## Usage
 
@@ -12,7 +12,7 @@ Geohash.rs is a Rust library for Geohash algorithm. Ported from my [node-geohash
 
 [dependencies]
 
-geohash = "~0.1.1"
+geohash = "*"
 ```
 
 ### Rust
@@ -20,15 +20,17 @@ geohash = "~0.1.1"
 ```rust
 extern crate geohash;
 
-use geohash::{encode, decode}
+use geo::{Coordinate};
+use geohash::{encode, decode};
 
 fn main() {
-    println!("encoding 37.8324, 112.5584: {}", encode(37.8324f32, 112.5584f32, 9u));
-    let (lat, lon, _, _) = decode("ww8p1r4t8");
-    println!("decoding ww8p1r4t8 to: {}, {}", lat, lon);
+    let c = Coordinate{x: 112.5584f64, y: 37.8324f64};
+    println!("encoding 37.8324, 112.5584: {}", encode(c, 9u));
+    let (c, _, _) = decode("ww8p1r4t8");
+    println!("decoding ww8p1r4t8 to: {}, {}", c.y, c.x);
 }
 ```
 
 ## License
 
-Geohash.rs is open sourced under MIT License, of course.
+Geohash.rs is open sourced under MIT License.
