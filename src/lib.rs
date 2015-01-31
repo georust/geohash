@@ -2,6 +2,10 @@
 #![cfg(test)]
 #![feature(std_misc, collections)]
 
+extern crate geo;
+
+use geo::Coordinate;
+
 static BASE32_CODES: &'static [char] =
     &['0', '1', '2', '3', '4', '5', '6', '7',
       '8', '9', 'b', 'c', 'd', 'e', 'f', 'g',
@@ -17,22 +21,22 @@ static BASE32_CODES: &'static [char] =
 ///
 /// Returns:
 /// Geohash encoded `String`
-pub fn encode(lat: f32, lon: f32, num_chars: usize) -> String {
+pub fn encode(c: Coordinate, num_chars: usize) -> String {
     let mut out: String = String::new();
 
     let mut bits: i8 = 0;
     let mut bits_total: i8 = 0;
     let mut hash_value: usize = 0;
-    let mut max_lat = 90f32;
-    let mut min_lat = -90f32;
-    let mut max_lon = 180f32;
-    let mut min_lon = -180f32;
-    let mut mid: f32;
+    let mut max_lat = 90f64;
+    let mut min_lat = -90f64;
+    let mut max_lon = 180f64;
+    let mut min_lon = -180f64;
+    let mut mid: f64;
 
     while out.len() < num_chars {
         if  bits_total % 2 == 0 {
-            mid = (max_lon + min_lon) / 2f32;
-            if lon > mid {
+            mid = (max_lon + min_lon) / 2f64;
+            if c.x > mid {
                 hash_value = (hash_value << 1) + 1us;
                 min_lon = mid;
             } else {
@@ -40,8 +44,8 @@ pub fn encode(lat: f32, lon: f32, num_chars: usize) -> String {
                 max_lon = mid;
             }
         } else {
-            mid = (max_lat + min_lat) / 2f32;
-            if lat > mid {
+            mid = (max_lat + min_lat) / 2f64;
+            if c.y > mid {
                 hash_value = (hash_value << 1) + 1us;
                 min_lat = mid;
             } else {
@@ -89,13 +93,13 @@ impl<'a, T: Eq> Indexable<T> for &'a [T] {
 /// * max_lat
 /// * min_lon
 /// * max_lon
-pub fn decode_bbox(hash_str: &str) -> (f32, f32, f32, f32){
+pub fn decode_bbox(hash_str: &str) -> (Coordinate, Coordinate){
     let mut is_lon = true;
-    let mut max_lat = 90f32;
-    let mut min_lat = -90f32;
-    let mut max_lon = 180f32;
-    let mut min_lon = -180f32;
-    let mut mid: f32;
+    let mut max_lat = 90f64;
+    let mut min_lat = -90f64;
+    let mut max_lon = 180f64;
+    let mut min_lon = -180f64;
+    let mut mid: f64;
     let mut hash_value: usize;
 
     let chars: Vec<char> = hash_str.chars().collect();
@@ -105,7 +109,7 @@ pub fn decode_bbox(hash_str: &str) -> (f32, f32, f32, f32){
         for bs in range(0, 5) {
             let bit = (hash_value >> (4 - bs)) & 1us;
             if is_lon {
-                mid = (max_lon + min_lon) / 2f32;
+                mid = (max_lon + min_lon) / 2f64;
 
                 if bit == 1 {
                     min_lon = mid;
@@ -113,7 +117,7 @@ pub fn decode_bbox(hash_str: &str) -> (f32, f32, f32, f32){
                     max_lon = mid;
                 }
             } else {
-                mid = (max_lat + min_lat) / 2f32;
+                mid = (max_lat + min_lat) / 2f64;
 
                 if bit == 1 {
                     min_lat = mid;
@@ -125,7 +129,7 @@ pub fn decode_bbox(hash_str: &str) -> (f32, f32, f32, f32){
         }
     }
 
-    (min_lat, max_lat, min_lon, max_lon)
+    (Coordinate{x: min_lon, y: min_lat}, Coordinate{x: max_lon, y: max_lat})
 }
 
 /// ### Encode latitude, longitude into geohash string
@@ -139,28 +143,30 @@ pub fn decode_bbox(hash_str: &str) -> (f32, f32, f32, f32){
 /// * longitude
 /// * latitude error
 /// * longitude error
-pub fn decode(hash_str: &str) -> (f32, f32, f32, f32) {
-    let (lat0, lat1, lon0, lon1) = decode_bbox(hash_str);
-    ((lat1+lat0)/2f32, (lon1+lon0)/2f32, (lat1-lat0)/2f32, (lon1-lon0)/2f32)
+pub fn decode(hash_str: &str) -> (Coordinate, f64, f64) {
+    let (c0, c1) = decode_bbox(hash_str);
+    (Coordinate {x: (c0.x+c1.x)/2f64, y: (c0.y+c1.y)/2f64},
+     (c1.y-c0.y)/2f64, (c1.x-c0.x)/2f64)
 }
 
 #[cfg(test)]
 mod test {
-    use ::{encode, decode, decode_bbox};
+    use ::{encode, decode};
+    use geo::Coordinate;
     use std::num::Float;
 
     #[test]
     fn test_encode() {
-        assert_eq!(encode(37.8324f32, 112.5584f32, 9us), "ww8p1r4t8".to_string());
-        assert_eq!(encode(32f32, 117f32, 3us), "wte".to_string());
+        let c0 = Coordinate{x: 112.5584f64, y: 37.8324f64};
+        assert_eq!(encode(c0, 9us), "ww8p1r4t8".to_string());
+        let c1 = Coordinate{x: 117f64, y: 32f64};
+        assert_eq!(encode(c1, 3us), "wte".to_string());
     }
 
     #[test]
     fn test_decode() {
-        assert_eq!(decode_bbox("ww8p1r4t8"),
-                   (37.832367f32, 37.832409f32, 112.558365f32, 112.558411f32));
-        let (lat, lon, _, _) = decode("ww8p1r4t8");
-        assert_eq!(Float::abs_sub(lat, 37.8324f32) < 1e-4f32, true);
-        assert_eq!(Float::abs_sub(lon, 112.5584f32) < 1e-4f32, true);
+        let (c, _, _) = decode("ww8p1r4t8");
+        assert_eq!(Float::abs_sub(c.y, 37.8324f64) < 1e-4f64, true);
+        assert_eq!(Float::abs_sub(c.x, 112.5584f64) < 1e-4f64, true);
     }
 }

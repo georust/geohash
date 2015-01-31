@@ -9,7 +9,6 @@ keywords = ["geohash", "gis", "geography"]
 repository = "https://github.com/sunng87/geohash.rs"
 readme = "README.md"
 
-[lib]
+[dependencies]
 
-name = "geohash"
-path = "src/lib.rs"
+geo = "*"
