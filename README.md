@@ -1,8 +1,8 @@
-# geohash.rs
+# Rust-Geohash
 
-Geohash.rs is a Rust library for Geohash algorithm. Ported from [node-geohash](http://github.com/sunng87/node-geohash) module.
+Rust-Geohash is a Rust library for Geohash algorithm. Ported from [node-geohash](http://github.com/sunng87/node-geohash) module.
 
-[![Build Status](https://travis-ci.org/georust/geohash.rs.svg)](https://travis-ci.org/georust/geohash.rs)
+[![Build Status](https://travis-ci.org/georust/rust-geohash.svg)](https://travis-ci.org/georust/rust-geohash)
 
 ## Usage
 
@@ -33,4 +33,4 @@ fn main() {
 
 ## License
 
-Geohash.rs is open sourced under MIT License.
+Rust-Geohash is open sourced under MIT License.
