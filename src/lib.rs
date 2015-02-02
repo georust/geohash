@@ -1,4 +1,3 @@
-#![feature(core)]
 #![cfg(test)]
 #![feature(std_misc, collections)]
 
