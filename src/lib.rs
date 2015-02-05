@@ -1,4 +1,3 @@
-#![feature(core)]
 #![cfg(test)]
 #![feature(std_misc)]
 
@@ -73,7 +72,7 @@ trait Indexable<T: Eq> {
 
 impl<'a, T: Eq> Indexable<T> for &'a [T] {
     fn index_of(&self, item:T) -> usize {
-        for c in range(0, self.len()) {
+        for c in 0..self.len() {
             if item == self[c] {
                 return c
             }
@@ -106,7 +105,7 @@ pub fn decode_bbox(hash_str: &str) -> (Coordinate, Coordinate){
     for c in chars.into_iter() {
         hash_value = BASE32_CODES.index_of(c);
 
-        for bs in range(0, 5) {
+        for bs in 0..5 {
             let bit = (hash_value >> (4 - bs)) & 1us;
             if is_lon {
                 mid = (max_lon + min_lon) / 2f64;
