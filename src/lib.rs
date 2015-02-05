@@ -1,6 +1,6 @@
 #![feature(core)]
 #![cfg(test)]
-#![feature(std_misc, collections)]
+#![feature(std_misc)]
 
 extern crate geo;
 
