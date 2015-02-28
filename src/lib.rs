@@ -36,7 +36,7 @@ pub fn encode(c: Coordinate, num_chars: usize) -> String {
         if  bits_total % 2 == 0 {
             mid = (max_lon + min_lon) / 2f64;
             if c.x > mid {
-                hash_value = (hash_value << 1) + 1us;
+                hash_value = (hash_value << 1) + 1usize;
                 min_lon = mid;
             } else {
                 hash_value = hash_value << 1;
@@ -45,7 +45,7 @@ pub fn encode(c: Coordinate, num_chars: usize) -> String {
         } else {
             mid = (max_lat + min_lat) / 2f64;
             if c.y > mid {
-                hash_value = (hash_value << 1) + 1us;
+                hash_value = (hash_value << 1) + 1usize;
                 min_lat = mid;
             } else {
                 hash_value = hash_value << 1;
@@ -106,7 +106,7 @@ pub fn decode_bbox(hash_str: &str) -> (Coordinate, Coordinate){
         hash_value = BASE32_CODES.index_of(c);
 
         for bs in 0..5 {
-            let bit = (hash_value >> (4 - bs)) & 1us;
+            let bit = (hash_value >> (4 - bs)) & 1usize;
             if is_lon {
                 mid = (max_lon + min_lon) / 2f64;
 
@@ -157,9 +157,9 @@ mod test {
     #[test]
     fn test_encode() {
         let c0 = Coordinate{x: 112.5584f64, y: 37.8324f64};
-        assert_eq!(encode(c0, 9us), "ww8p1r4t8".to_string());
+        assert_eq!(encode(c0, 9usize), "ww8p1r4t8".to_string());
         let c1 = Coordinate{x: 117f64, y: 32f64};
-        assert_eq!(encode(c1, 3us), "wte".to_string());
+        assert_eq!(encode(c1, 3usize), "wte".to_string());
     }
 
     #[test]
