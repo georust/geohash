@@ -12,3 +12,6 @@ readme = "README.md"
 [dependencies]
 
 geo = "*"
+
+[dev-dependencies]
+num = "*"

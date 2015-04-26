@@ -1,6 +1,5 @@
 #![cfg(test)]
-#![feature(std_misc)]
-
+extern crate num;
 extern crate geo;
 
 use geo::Coordinate;
@@ -67,17 +66,17 @@ pub fn encode(c: Coordinate, num_chars: usize) -> String {
 }
 
 trait Indexable<T: Eq> {
-    fn index_of(&self, item:T) -> usize;
+    fn index_of(&self, item:T) -> Option<usize>;
 }
 
 impl<'a, T: Eq> Indexable<T> for &'a [T] {
-    fn index_of(&self, item:T) -> usize {
+    fn index_of(&self, item:T) -> Option<usize> {
         for c in 0..self.len() {
             if item == self[c] {
-                return c
+                return Some(c)
             }
         }
-        -1
+        None
     }
 }
 
@@ -103,7 +102,7 @@ pub fn decode_bbox(hash_str: &str) -> (Coordinate, Coordinate){
 
     let chars: Vec<char> = hash_str.chars().collect();
     for c in chars.into_iter() {
-        hash_value = BASE32_CODES.index_of(c);
+        hash_value = BASE32_CODES.index_of(c).unwrap();
 
         for bs in 0..5 {
             let bit = (hash_value >> (4 - bs)) & 1usize;
@@ -152,7 +151,7 @@ pub fn decode(hash_str: &str) -> (Coordinate, f64, f64) {
 mod test {
     use ::{encode, decode};
     use geo::Coordinate;
-    use std::num::Float;
+    use num::Float;
 
     #[test]
     fn test_encode() {
