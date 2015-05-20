@@ -1,4 +1,4 @@
-#![cfg(test)]
+#[cfg(test)]
 extern crate num;
 extern crate geo;
 
