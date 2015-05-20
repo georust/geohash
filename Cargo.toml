@@ -8,6 +8,7 @@ license = "MIT"
 keywords = ["geohash", "gis", "geography"]
 repository = "https://github.com/georust/geohash.rs"
 readme = "README.md"
+documentation = "https://georust.github.io/rust-geohash/"
 
 [dependencies]
 
