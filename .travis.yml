@@ -1,4 +1,8 @@
 language: rust
+rust:
+  - nightly
+  - beta
+  - 1.0.0
 after_success: |
   cargo doc && \
   echo '<meta http-equiv=refresh content=0;url=geohash/index.html>' > target/doc/index.html && \
