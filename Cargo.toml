@@ -1,7 +1,7 @@
 [package]
 
 name = "geohash"
-version = "0.2.3"
+version = "0.2.4"
 authors = [ "Ning Sun <sunng@about.me>" ]
 description = "Geohash implementation for Rust."
 license = "MIT"
@@ -12,7 +12,7 @@ documentation = "https://georust.github.io/rust-geohash/"
 
 [dependencies]
 
-geo = "*"
+geo = "^0.0.5"
 
 [dev-dependencies]
 num = "*"
