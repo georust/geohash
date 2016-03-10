@@ -3,21 +3,11 @@
 Rust-Geohash is a Rust library for Geohash algorithm. Ported from [node-geohash](http://github.com/sunng87/node-geohash) module.
 
 [![Build Status](https://travis-ci.org/georust/rust-geohash.svg)](https://travis-ci.org/georust/rust-geohash)
+[![](http://meritbadge.herokuapp.com/geohash)](https://crates.io/crates/geohash)
 
 [Documentation](https://georust.github.io/rust-geohash/)
 
 ## Usage
-
-### Cargo
-
-```toml
-
-[dependencies]
-
-geohash = "*"
-```
-
-### Rust
 
 ```rust
 extern crate geohash;
