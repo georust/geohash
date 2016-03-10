@@ -7,6 +7,10 @@ rust:
   - 1.5.0
   - 1.4.0
 after_success: |
+  echo $TRAVIS_RUST_VERSION && \
+  [ $TRAVIS_BRANCH == 'master' ] && \
+  [ $TRAVIS_RUST_VERSION == '1.7.0' ] && \
+  [ "$TRAVIS_PULL_REQUEST" == "false" ] && \
   cargo doc && \
   echo '<meta http-equiv=refresh content=0;url=geohash/index.html>' > target/doc/index.html && \
   sudo pip install ghp-import && \
