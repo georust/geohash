@@ -12,7 +12,7 @@ documentation = "https://georust.github.io/rust-geohash/"
 
 [dependencies]
 
-geo = "^0.0.5"
+geo = "~0.0.5"
 
 [dev-dependencies]
 num = "0.1.30"
