@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `Centroid` trait in crate `geo`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, Centroid">
+
+    <title>geo::algorithm::centroid::Centroid - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../../../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../../../main.css">
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'><a href='../../index.html'>geo</a>::<wbr><a href='../index.html'>algorithm</a>::<wbr><a href='index.html'>centroid</a></p><script>window.sidebarCurrent = {name: 'Centroid', ty: 'trait', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content trait">
+<h1 class='fqn'><span class='in-band'>Trait <a href='../../index.html'>geo</a>::<wbr><a href='../index.html'>algorithm</a>::<wbr><a href='index.html'>centroid</a>::<wbr><a class='trait' href=''>Centroid</a></span><span class='out-of-band'><span id='render-detail'>
+            <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                [<span class='inner'>&#x2212;</span>]
+            </a>
+        </span><a id='src-356' class='srclink' href='../../../src/geo/algorithm/centroid.rs.html#6-22' title='goto source code'>[src]</a></span></h1>
+<pre class='rust trait'>pub trait Centroid {
+    fn <a href='#tymethod.centroid' class='fnname'>centroid</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='struct' href='../../../geo/struct.Point.html' title='geo::Point'>Point</a>&gt;;
+}</pre><div class='docblock'><p>Calculation of the centroid.</p>
+</div>
+            <h2 id='required-methods'>Required Methods</h2>
+            <div class='methods'>
+        <h3 id='tymethod.centroid' class='method stab '><code>fn <a href='#tymethod.centroid' class='fnname'>centroid</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/option/enum.Option.html' title='core::option::Option'>Option</a>&lt;<a class='struct' href='../../../geo/struct.Point.html' title='geo::Point'>Point</a>&gt;</code></h3><div class='docblock'><p>Calculation the centroid, see: <a href="https://en.wikipedia.org/wiki/Centroid">https://en.wikipedia.org/wiki/Centroid</a></p>
+<pre class='rust rust-example-rendered'>
+<span class='kw'>use</span> <span class='ident'>geo</span>::{<span class='ident'>Point</span>, <span class='ident'>LineString</span>, <span class='ident'>Coordinate</span>};
+<span class='kw'>use</span> <span class='ident'>geo</span>::<span class='ident'>algorithm</span>::<span class='ident'>centroid</span>::<span class='ident'>Centroid</span>;
+
+<span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>vec</span> <span class='op'>=</span> <span class='ident'>Vec</span>::<span class='ident'>new</span>();
+<span class='ident'>vec</span>.<span class='ident'>push</span>(<span class='ident'>Point</span>::<span class='ident'>new</span>(<span class='number'>40.02f64</span>, <span class='number'>116.34</span>));
+<span class='ident'>vec</span>.<span class='ident'>push</span>(<span class='ident'>Point</span>::<span class='ident'>new</span>(<span class='number'>40.02f64</span>, <span class='number'>116.34</span>));
+<span class='kw'>let</span> <span class='ident'>linestring</span> <span class='op'>=</span> <span class='ident'>LineString</span>(<span class='ident'>vec</span>);
+
+<span class='macro'>println</span><span class='macro'>!</span>(<span class='string'>&quot;Centroid {:?}&quot;</span>, <span class='ident'>linestring</span>.<span class='ident'>centroid</span>());</pre>
+</div></div>
+        <h2 id='implementors'>Implementors</h2>
+        <ul class='item-list' id='implementors-list'>
+    <li><code>impl <a class='trait' href='../../../geo/algorithm/centroid/trait.Centroid.html' title='geo::algorithm::centroid::Centroid'>Centroid</a> for <a class='struct' href='../../../geo/struct.LineString.html' title='geo::LineString'>LineString</a></code></li>
+<li><code>impl <a class='trait' href='../../../geo/algorithm/centroid/trait.Centroid.html' title='geo::algorithm::centroid::Centroid'>Centroid</a> for <a class='struct' href='../../../geo/struct.Polygon.html' title='geo::Polygon'>Polygon</a></code></li>
+</ul><script type="text/javascript" async
+                              src="../../../implementors/geo/algorithm/centroid/trait.Centroid.js">
+                      </script></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../../../";
+        window.currentCrate = "geo";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../../../jquery.js"></script>
+    <script src="../../../main.js"></script>
+    
+    <script defer src="../../../search-index.js"></script>
+</body>
+</html>

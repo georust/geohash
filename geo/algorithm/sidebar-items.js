@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["centroid","Calculation of the centroid."]]});

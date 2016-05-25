@@ -1,0 +1,1 @@
+initSidebarItems({"trait":[["Centroid","Calculation of the centroid."]]});
