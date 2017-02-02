@@ -19,7 +19,7 @@ static BASE32_CODES: &'static [char] =
 ///
 /// Returns:
 /// Geohash encoded `String`
-pub fn encode(c: Coordinate, num_chars: usize) -> String {
+pub fn encode(c: Coordinate<f64>, num_chars: usize) -> String {
     let mut out: String = String::new();
 
     let mut bits: i8 = 0;
@@ -91,7 +91,7 @@ impl<'a, T: Eq> Indexable<T> for &'a [T] {
 /// * max_lat
 /// * min_lon
 /// * max_lon
-pub fn decode_bbox(hash_str: &str) -> (Coordinate, Coordinate){
+pub fn decode_bbox(hash_str: &str) -> (Coordinate<f64>, Coordinate<f64>){
     let mut is_lon = true;
     let mut max_lat = 90f64;
     let mut min_lat = -90f64;
@@ -141,7 +141,7 @@ pub fn decode_bbox(hash_str: &str) -> (Coordinate, Coordinate){
 /// * longitude
 /// * latitude error
 /// * longitude error
-pub fn decode(hash_str: &str) -> (Coordinate, f64, f64) {
+pub fn decode(hash_str: &str) -> (Coordinate<f64>, f64, f64) {
     let (c0, c1) = decode_bbox(hash_str);
     (Coordinate {x: (c0.x+c1.x)/2f64, y: (c0.y+c1.y)/2f64},
      (c1.y-c0.y)/2f64, (c1.x-c0.x)/2f64)
