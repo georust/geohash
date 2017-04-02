@@ -7,6 +7,17 @@ use geo::Coordinate;
 static BASE32_CODES: &'static [char] = &['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'b',
                                          'c', 'd', 'e', 'f', 'g', 'h', 'j', 'k', 'm', 'n', 'p',
                                          'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
+#[derive(Debug, Clone)]
+pub struct Neighbors {
+    pub sw: String,
+    pub s: String,
+    pub se: String,
+    pub w: String,
+    pub e: String,
+    pub nw: String,
+    pub n: String,
+    pub ne: String,
+}
 
 /// ### Encode latitude, longitude into geohash string
 ///
@@ -170,16 +181,17 @@ pub fn neighbor(hash_str: &str, direction: (i8, i8)) -> String {
     encode(gl, hash_str.len())
 }
 
-pub fn neighbors(hash_str: &str) -> Box<Vec<String>> {
-    Box::new(vec![hash_str.to_string(),
-                  neighbor(hash_str, (-1, -1)),
-                  neighbor(hash_str, (-1, 0)),
-                  neighbor(hash_str, (-1, 1)),
-                  neighbor(hash_str, (0, -1)),
-                  neighbor(hash_str, (0, 1)),
-                  neighbor(hash_str, (1, -1)),
-                  neighbor(hash_str, (1, 0)),
-                  neighbor(hash_str, (1, 1))])
+pub fn neighbors(hash_str: &str) -> Neighbors {
+    Neighbors {
+        sw: neighbor(hash_str, (-1, -1)),
+        s: neighbor(hash_str, (-1, 0)),
+        se: neighbor(hash_str, (-1, 1)),
+        w: neighbor(hash_str, (0, -1)),
+        e: neighbor(hash_str, (0, 1)),
+        nw: neighbor(hash_str, (1, -1)),
+        n: neighbor(hash_str, (1, 0)),
+        ne: neighbor(hash_str, (1, 1)),
+    }
 }
 
 #[cfg(test)]
@@ -213,15 +225,13 @@ mod test {
     #[test]
     fn test_neighbor() {
         let ns = neighbors("ww8p1r4t8");
-        println!("{:?}", ns);
-        assert_eq!(ns[0], "ww8p1r4t8");
-        assert_eq!(ns[1], "ww8p1r4mr");
-        assert_eq!(ns[2], "ww8p1r4t2");
-        assert_eq!(ns[3], "ww8p1r4t3");
-        assert_eq!(ns[4], "ww8p1r4mx");
-        assert_eq!(ns[5], "ww8p1r4t9");
-        assert_eq!(ns[6], "ww8p1r4mz");
-        assert_eq!(ns[7], "ww8p1r4tb");
-        assert_eq!(ns[8], "ww8p1r4tc");
+        assert_eq!(ns.sw, "ww8p1r4mr");
+        assert_eq!(ns.s, "ww8p1r4t2");
+        assert_eq!(ns.se, "ww8p1r4t3");
+        assert_eq!(ns.w, "ww8p1r4mx");
+        assert_eq!(ns.e, "ww8p1r4t9");
+        assert_eq!(ns.nw, "ww8p1r4mz");
+        assert_eq!(ns.n, "ww8p1r4tb");
+        assert_eq!(ns.ne, "ww8p1r4tc");
     }
 }

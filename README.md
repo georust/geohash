@@ -22,6 +22,7 @@ fn main() {
     println!("decoding ww8p1r4t8 to: {}, {}", c.y, c.x);
     let sw = neighbor("ww8p1r4t8", (-1,-1));
     println!("{}", sw) // ww8p1r4mr
+    // sw: (-1, -1), s: (-1, 0), se: (-1, 1), w: (0,-1), e: (0, 1), nw: (1, -1), n: (1, 0), ne: (1, 1)
 }
 ```
 
