@@ -13,16 +13,14 @@ Rust-Geohash is a Rust library for Geohash algorithm. Ported from [node-geohash]
 extern crate geohash;
 
 use geo::{Coordinate};
-use geohash::{encode, decode, neighbor};
+use geohash::{encode, decode, neighbor, Direction};
 
 fn main() {
     let c = Coordinate{x: 112.5584f64, y: 37.8324f64};
     println!("encoding 37.8324, 112.5584: {}", encode(c, 9u));
     let (c, _, _) = decode("ww8p1r4t8");
     println!("decoding ww8p1r4t8 to: {}, {}", c.y, c.x);
-    let sw = neighbor("ww8p1r4t8", (-1,-1));
-    println!("{}", sw) // ww8p1r4mr
-    // sw: (-1, -1), s: (-1, 0), se: (-1, 1), w: (0,-1), e: (0, 1), nw: (1, -1), n: (1, 0), ne: (1, 1)
+    let sw = neighbor("ww8p1r4t8", Direction::SW);
 }
 ```
 
