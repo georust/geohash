@@ -9,39 +9,39 @@ static BASE32_CODES: &'static [char] = &['0', '1', '2', '3', '4', '5', '6', '7',
                                          'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
 #[derive(Debug, Clone)]
 pub struct Neighbors {
-    pub SW: String,
-    pub S: String,
-    pub SE: String,
-    pub W: String,
-    pub E: String,
-    pub NW: String,
-    pub N: String,
-    pub NE: String,
+    pub sw: String,
+    pub s: String,
+    pub se: String,
+    pub w: String,
+    pub e: String,
+    pub nw: String,
+    pub n: String,
+    pub ne: String,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Direction {
-    SW,
+    Sw,
     S,
-    SE,
+    Se,
     W,
     E,
-    NW,
+    Nw,
     N,
-    NE,
+    Ne,
 }
 
 impl Direction {
     fn to_tuple(self) -> (i8, i8) {
         match self {
-            Direction::SW => (-1, -1),
+            Direction::Sw => (-1, -1),
             Direction::S => (-1, 0),
-            Direction::SE => (-1, 1),
+            Direction::Se => (-1, 1),
             Direction::W => (0, -1),
             Direction::E => (0, 1),
-            Direction::NW => (1, -1),
+            Direction::Nw => (1, -1),
             Direction::N => (1, 0),
-            Direction::NE => (1, 1),
+            Direction::Ne => (1, 1),
         }
     }
 }
@@ -209,14 +209,14 @@ pub fn neighbor(hash_str: &str, direction: Direction) -> String {
 
 pub fn neighbors(hash_str: &str) -> Neighbors {
     Neighbors {
-        SW: neighbor(hash_str, Direction::SW),
-        S: neighbor(hash_str, Direction::S),
-        SE: neighbor(hash_str, Direction::SE),
-        W: neighbor(hash_str, Direction::W),
-        E: neighbor(hash_str, Direction::E),
-        NW: neighbor(hash_str, Direction::NW),
-        N: neighbor(hash_str, Direction::N),
-        NE: neighbor(hash_str, Direction::NE),
+        sw: neighbor(hash_str, Direction::Sw),
+        s: neighbor(hash_str, Direction::S),
+        se: neighbor(hash_str, Direction::Se),
+        w: neighbor(hash_str, Direction::W),
+        e: neighbor(hash_str, Direction::E),
+        nw: neighbor(hash_str, Direction::Nw),
+        n: neighbor(hash_str, Direction::N),
+        ne: neighbor(hash_str, Direction::Ne),
     }
 }
 
@@ -251,13 +251,13 @@ mod test {
     #[test]
     fn test_neighbor() {
         let ns = neighbors("ww8p1r4t8");
-        assert_eq!(ns.SW, "ww8p1r4mr");
-        assert_eq!(ns.S, "ww8p1r4t2");
-        assert_eq!(ns.SE, "ww8p1r4t3");
-        assert_eq!(ns.W, "ww8p1r4mx");
-        assert_eq!(ns.E, "ww8p1r4t9");
-        assert_eq!(ns.NW, "ww8p1r4mz");
-        assert_eq!(ns.N, "ww8p1r4tb");
-        assert_eq!(ns.NE, "ww8p1r4tc");
+        assert_eq!(ns.sw, "ww8p1r4mr");
+        assert_eq!(ns.s, "ww8p1r4t2");
+        assert_eq!(ns.se, "ww8p1r4t3");
+        assert_eq!(ns.w, "ww8p1r4mx");
+        assert_eq!(ns.e, "ww8p1r4t9");
+        assert_eq!(ns.nw, "ww8p1r4mz");
+        assert_eq!(ns.n, "ww8p1r4tb");
+        assert_eq!(ns.ne, "ww8p1r4tc");
     }
 }
