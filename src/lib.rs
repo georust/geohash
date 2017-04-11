@@ -4,12 +4,47 @@ extern crate geo;
 
 use geo::Coordinate;
 
-static BASE32_CODES: &'static [char] =
-    &['0', '1', '2', '3', '4', '5', '6', '7',
-      '8', '9', 'b', 'c', 'd', 'e', 'f', 'g',
-      'h', 'j', 'k', 'm', 'n', 'p', 'q', 'r',
-      's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
+static BASE32_CODES: &'static [char] = &['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'b',
+                                         'c', 'd', 'e', 'f', 'g', 'h', 'j', 'k', 'm', 'n', 'p',
+                                         'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
+#[derive(Debug, Clone)]
+pub struct Neighbors {
+    pub SW: String,
+    pub S: String,
+    pub SE: String,
+    pub W: String,
+    pub E: String,
+    pub NW: String,
+    pub N: String,
+    pub NE: String,
+}
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Direction {
+    SW,
+    S,
+    SE,
+    W,
+    E,
+    NW,
+    N,
+    NE,
+}
+
+impl Direction {
+    fn to_tuple(self) -> (i8, i8) {
+        match self {
+            Direction::SW => (-1, -1),
+            Direction::S => (-1, 0),
+            Direction::SE => (-1, 1),
+            Direction::W => (0, -1),
+            Direction::E => (0, 1),
+            Direction::NW => (1, -1),
+            Direction::N => (1, 0),
+            Direction::NE => (1, 1),
+        }
+    }
+}
 /// ### Encode latitude, longitude into geohash string
 ///
 /// Parameters:
@@ -32,7 +67,7 @@ pub fn encode(c: Coordinate<f64>, num_chars: usize) -> String {
     let mut mid: f64;
 
     while out.len() < num_chars {
-        if  bits_total % 2 == 0 {
+        if bits_total % 2 == 0 {
             mid = (max_lon + min_lon) / 2f64;
             if c.x > mid {
                 hash_value = (hash_value << 1) + 1usize;
@@ -66,14 +101,14 @@ pub fn encode(c: Coordinate<f64>, num_chars: usize) -> String {
 }
 
 trait Indexable<T: Eq> {
-    fn index_of(&self, item:T) -> Option<usize>;
+    fn index_of(&self, item: T) -> Option<usize>;
 }
 
 impl<'a, T: Eq> Indexable<T> for &'a [T] {
-    fn index_of(&self, item:T) -> Option<usize> {
+    fn index_of(&self, item: T) -> Option<usize> {
         for c in 0..self.len() {
             if item == self[c] {
-                return Some(c)
+                return Some(c);
             }
         }
         None
@@ -91,7 +126,7 @@ impl<'a, T: Eq> Indexable<T> for &'a [T] {
 /// * max_lat
 /// * min_lon
 /// * max_lon
-pub fn decode_bbox(hash_str: &str) -> (Coordinate<f64>, Coordinate<f64>){
+pub fn decode_bbox(hash_str: &str) -> (Coordinate<f64>, Coordinate<f64>) {
     let mut is_lon = true;
     let mut max_lat = 90f64;
     let mut min_lat = -90f64;
@@ -127,7 +162,14 @@ pub fn decode_bbox(hash_str: &str) -> (Coordinate<f64>, Coordinate<f64>){
         }
     }
 
-    (Coordinate{x: min_lon, y: min_lat}, Coordinate{x: max_lon, y: max_lat})
+    (Coordinate {
+         x: min_lon,
+         y: min_lat,
+     },
+     Coordinate {
+         x: max_lon,
+         y: max_lat,
+     })
 }
 
 /// ### Encode latitude, longitude into geohash string
@@ -143,21 +185,58 @@ pub fn decode_bbox(hash_str: &str) -> (Coordinate<f64>, Coordinate<f64>){
 /// * longitude error
 pub fn decode(hash_str: &str) -> (Coordinate<f64>, f64, f64) {
     let (c0, c1) = decode_bbox(hash_str);
-    (Coordinate {x: (c0.x+c1.x)/2f64, y: (c0.y+c1.y)/2f64},
-     (c1.y-c0.y)/2f64, (c1.x-c0.x)/2f64)
+    (Coordinate {
+         x: (c0.x + c1.x) / 2f64,
+         y: (c0.y + c1.y) / 2f64,
+     },
+     (c1.y - c0.y) / 2f64,
+     (c1.x - c0.x) / 2f64)
+}
+
+pub fn neighbor(hash_str: &str, direction: Direction) -> String {
+    let b = decode(hash_str);
+    let c = b.0;
+    let gl = match direction.to_tuple() {
+        (dlat, dlng) => {
+            Coordinate {
+                x: c.x + 2f64 * b.1.abs() * (dlng as f64),
+                y: c.y + 2f64 * b.2.abs() * (dlat as f64),
+            }
+        }
+    };
+    encode(gl, hash_str.len())
+}
+
+pub fn neighbors(hash_str: &str) -> Neighbors {
+    Neighbors {
+        SW: neighbor(hash_str, Direction::SW),
+        S: neighbor(hash_str, Direction::S),
+        SE: neighbor(hash_str, Direction::SE),
+        W: neighbor(hash_str, Direction::W),
+        E: neighbor(hash_str, Direction::E),
+        NW: neighbor(hash_str, Direction::NW),
+        N: neighbor(hash_str, Direction::N),
+        NE: neighbor(hash_str, Direction::NE),
+    }
 }
 
 #[cfg(test)]
 mod test {
-    use ::{encode, decode};
+    use {encode, decode, neighbors};
     use geo::Coordinate;
     use num::Float;
 
     #[test]
     fn test_encode() {
-        let c0 = Coordinate{x: 112.5584f64, y: 37.8324f64};
+        let c0 = Coordinate {
+            x: 112.5584f64,
+            y: 37.8324f64,
+        };
         assert_eq!(encode(c0, 9usize), "ww8p1r4t8".to_string());
-        let c1 = Coordinate{x: 117f64, y: 32f64};
+        let c1 = Coordinate {
+            x: 117f64,
+            y: 32f64,
+        };
         assert_eq!(encode(c1, 3usize), "wte".to_string());
     }
 
@@ -166,5 +245,19 @@ mod test {
         let (c, _, _) = decode("ww8p1r4t8");
         assert_eq!(Float::abs_sub(c.y, 37.8324f64) < 1e-4f64, true);
         assert_eq!(Float::abs_sub(c.x, 112.5584f64) < 1e-4f64, true);
+    }
+
+
+    #[test]
+    fn test_neighbor() {
+        let ns = neighbors("ww8p1r4t8");
+        assert_eq!(ns.SW, "ww8p1r4mr");
+        assert_eq!(ns.S, "ww8p1r4t2");
+        assert_eq!(ns.SE, "ww8p1r4t3");
+        assert_eq!(ns.W, "ww8p1r4mx");
+        assert_eq!(ns.E, "ww8p1r4t9");
+        assert_eq!(ns.NW, "ww8p1r4mz");
+        assert_eq!(ns.N, "ww8p1r4tb");
+        assert_eq!(ns.NE, "ww8p1r4tc");
     }
 }
