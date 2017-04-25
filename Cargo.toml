@@ -11,7 +11,7 @@ readme = "README.md"
 documentation = "https://georust.github.io/rust-geohash/"
 
 [dependencies]
-geo = "~0.3.0"
+geo = "~0.4.0"
 
 [dev-dependencies]
 num = "0.1.30"
