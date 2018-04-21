@@ -135,8 +135,7 @@ pub fn decode_bbox(hash_str: &str) -> (Coordinate<f64>, Coordinate<f64>) {
     let mut mid: f64;
     let mut hash_value: usize;
 
-    let chars: Vec<char> = hash_str.chars().collect();
-    for c in chars.into_iter() {
+    for c in hash_str.chars() {
         hash_value = BASE32_CODES.index_of(c).unwrap();
 
         for bs in 0..5 {
