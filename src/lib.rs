@@ -2,7 +2,7 @@
 extern crate num_traits;
 extern crate geo;
 
-use geo::Coordinate;
+pub use geo::Coordinate;
 
 static BASE32_CODES: &'static [char] = &['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'b',
                                          'c', 'd', 'e', 'f', 'g', 'h', 'j', 'k', 'm', 'n', 'p',
