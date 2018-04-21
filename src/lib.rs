@@ -73,7 +73,7 @@ pub fn encode(c: Coordinate<f64>, num_chars: usize) -> String {
                 hash_value = (hash_value << 1) + 1usize;
                 min_lon = mid;
             } else {
-                hash_value = hash_value << 1;
+                hash_value <<= 1;
                 max_lon = mid;
             }
         } else {
@@ -82,7 +82,7 @@ pub fn encode(c: Coordinate<f64>, num_chars: usize) -> String {
                 hash_value = (hash_value << 1) + 1usize;
                 min_lat = mid;
             } else {
-                hash_value = hash_value << 1;
+                hash_value <<= 1;
                 max_lat = mid;
             }
         }
