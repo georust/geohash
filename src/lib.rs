@@ -1,5 +1,5 @@
 #[cfg(test)]
-extern crate num;
+extern crate num_traits;
 extern crate geo;
 
 use geo::Coordinate;
@@ -224,7 +224,7 @@ pub fn neighbors(hash_str: &str) -> Neighbors {
 mod test {
     use {encode, decode, neighbors};
     use geo::Coordinate;
-    use num::Float;
+    use num_traits::Float;
 
     #[test]
     fn test_encode() {

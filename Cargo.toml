@@ -14,4 +14,4 @@ documentation = "https://georust.github.io/rust-geohash/"
 geo = "~0.6.0"
 
 [dev-dependencies]
-num = "0.1.30"
+num-traits = "0.2"
