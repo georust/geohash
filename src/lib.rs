@@ -55,7 +55,7 @@ impl Direction {
 /// Returns:
 /// Geohash encoded `String`
 pub fn encode(c: Coordinate<f64>, num_chars: usize) -> String {
-    let mut out: String = String::new();
+    let mut out = String::with_capacity(num_chars);
 
     let mut bits: i8 = 0;
     let mut bits_total: i8 = 0;
