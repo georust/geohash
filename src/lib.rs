@@ -100,21 +100,6 @@ pub fn encode(c: Coordinate<f64>, num_chars: usize) -> String {
     out
 }
 
-trait Indexable<T: Eq> {
-    fn index_of(&self, item: T) -> Option<usize>;
-}
-
-impl<'a, T: Eq> Indexable<T> for &'a [T] {
-    fn index_of(&self, item: T) -> Option<usize> {
-        for c in 0..self.len() {
-            if item == self[c] {
-                return Some(c);
-            }
-        }
-        None
-    }
-}
-
 /// ### Encode latitude, longitude into geohash string
 ///
 /// Parameters:
@@ -136,7 +121,7 @@ pub fn decode_bbox(hash_str: &str) -> (Coordinate<f64>, Coordinate<f64>) {
     let mut hash_value: usize;
 
     for c in hash_str.chars() {
-        hash_value = BASE32_CODES.index_of(c).unwrap();
+        hash_value = BASE32_CODES.iter().position(|n| *n == c).unwrap();
 
         for bs in 0..5 {
             let bit = (hash_value >> (4 - bs)) & 1usize;
