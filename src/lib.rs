@@ -100,7 +100,7 @@ pub fn encode(c: Coordinate<f64>, num_chars: usize) -> String {
     out
 }
 
-/// ### Encode latitude, longitude into geohash string
+/// ### Decode geohash string into latitude, longitude
 ///
 /// Parameters:
 /// Geohash encoded `&str`
