@@ -1,8 +1,8 @@
 #[cfg(test)]
-extern crate num;
+extern crate num_traits;
 extern crate geo;
 
-use geo::Coordinate;
+pub use geo::Coordinate;
 
 static BASE32_CODES: &'static [char] = &['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'b',
                                          'c', 'd', 'e', 'f', 'g', 'h', 'j', 'k', 'm', 'n', 'p',
@@ -55,7 +55,7 @@ impl Direction {
 /// Returns:
 /// Geohash encoded `String`
 pub fn encode(c: Coordinate<f64>, num_chars: usize) -> String {
-    let mut out: String = String::new();
+    let mut out = String::with_capacity(num_chars);
 
     let mut bits: i8 = 0;
     let mut bits_total: i8 = 0;
@@ -73,7 +73,7 @@ pub fn encode(c: Coordinate<f64>, num_chars: usize) -> String {
                 hash_value = (hash_value << 1) + 1usize;
                 min_lon = mid;
             } else {
-                hash_value = hash_value << 1;
+                hash_value <<= 1;
                 max_lon = mid;
             }
         } else {
@@ -82,7 +82,7 @@ pub fn encode(c: Coordinate<f64>, num_chars: usize) -> String {
                 hash_value = (hash_value << 1) + 1usize;
                 min_lat = mid;
             } else {
-                hash_value = hash_value << 1;
+                hash_value <<= 1;
                 max_lat = mid;
             }
         }
@@ -100,22 +100,7 @@ pub fn encode(c: Coordinate<f64>, num_chars: usize) -> String {
     out
 }
 
-trait Indexable<T: Eq> {
-    fn index_of(&self, item: T) -> Option<usize>;
-}
-
-impl<'a, T: Eq> Indexable<T> for &'a [T] {
-    fn index_of(&self, item: T) -> Option<usize> {
-        for c in 0..self.len() {
-            if item == self[c] {
-                return Some(c);
-            }
-        }
-        None
-    }
-}
-
-/// ### Encode latitude, longitude into geohash string
+/// ### Decode geohash string into latitude, longitude
 ///
 /// Parameters:
 /// Geohash encoded `&str`
@@ -135,9 +120,8 @@ pub fn decode_bbox(hash_str: &str) -> (Coordinate<f64>, Coordinate<f64>) {
     let mut mid: f64;
     let mut hash_value: usize;
 
-    let chars: Vec<char> = hash_str.chars().collect();
-    for c in chars.into_iter() {
-        hash_value = BASE32_CODES.index_of(c).unwrap();
+    for c in hash_str.chars() {
+        hash_value = BASE32_CODES.iter().position(|n| *n == c).unwrap();
 
         for bs in 0..5 {
             let bit = (hash_value >> (4 - bs)) & 1usize;
@@ -224,7 +208,7 @@ pub fn neighbors(hash_str: &str) -> Neighbors {
 mod test {
     use {encode, decode, neighbors};
     use geo::Coordinate;
-    use num::Float;
+    use num_traits::Float;
 
     #[test]
     fn test_encode() {
