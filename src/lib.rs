@@ -7,7 +7,7 @@ pub use geo_types::Coordinate;
 static BASE32_CODES: &'static [char] = &['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'b',
                                          'c', 'd', 'e', 'f', 'g', 'h', 'j', 'k', 'm', 'n', 'p',
                                          'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Neighbors {
     pub sw: String,
     pub s: String,
@@ -21,14 +21,22 @@ pub struct Neighbors {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Direction {
-    Sw,
-    S,
-    Se,
-    W,
-    E,
-    Nw,
+    /// North
     N,
+    /// North-east
     Ne,
+    /// Eeast
+    E,
+    /// South-east
+    Se,
+    /// South
+    S,
+    /// South-west
+    Sw,
+    /// West
+    W,
+    /// North-west
+    Nw,
 }
 
 impl Direction {
@@ -45,17 +53,32 @@ impl Direction {
         }
     }
 }
-/// ### Encode latitude, longitude into geohash string
+
+/// Encode a coordinate to a geohash with length `len`.
 ///
-/// Parameters:
-/// * `latitude`
-/// * `longitude`
-/// * `num_chars`: how many characters to encode
+/// # Examples
 ///
-/// Returns:
-/// Geohash encoded `String`
-pub fn encode(c: Coordinate<f64>, num_chars: usize) -> String {
-    let mut out = String::with_capacity(num_chars);
+/// Encoding a coordinate to a length five geohash:
+///
+/// ```rust
+/// let coord = geohash::Coordinate { x: -120.6623, y: 35.3003 };
+///
+/// let geohash_string = geohash::encode(coord, 5);
+///
+/// assert_eq!(geohash_string, "9q60y");
+/// ```
+///
+/// Encoding a coordinate to a length ten geohash:
+///
+/// ```rust
+/// let coord = geohash::Coordinate { x: -120.6623, y: 35.3003 };
+///
+/// let geohash_string = geohash::encode(coord, 10);
+///
+/// assert_eq!(geohash_string, "9q60y60rhs");
+/// ```
+pub fn encode(c: Coordinate<f64>, len: usize) -> String {
+    let mut out = String::with_capacity(len);
 
     let mut bits: i8 = 0;
     let mut bits_total: i8 = 0;
@@ -66,7 +89,7 @@ pub fn encode(c: Coordinate<f64>, num_chars: usize) -> String {
     let mut min_lon = -180f64;
     let mut mid: f64;
 
-    while out.len() < num_chars {
+    while out.len() < len {
         if bits_total % 2 == 0 {
             mid = (max_lon + min_lon) / 2f64;
             if c.x > mid {
@@ -156,17 +179,50 @@ pub fn decode_bbox(hash_str: &str) -> (Coordinate<f64>, Coordinate<f64>) {
      })
 }
 
-/// ### Encode latitude, longitude into geohash string
+/// Decode a geohash into a coordinate with some longitude/latitude error. The
+/// return value is `(<coordinate>, <longitude error>, <latitude error>)`.
 ///
-/// Parameters:
-/// Geohash encoded `&str`
+/// # Examples
 ///
-/// Returns:
-/// A four-element tuple describs a bound box:
-/// * latitude
-/// * longitude
-/// * latitude error
-/// * longitude error
+/// Decoding a length five geohash:
+///
+/// ```rust
+/// let geohash_str = "9q60y";
+///
+/// let decoded = geohash::decode(geohash_str);
+///
+/// assert_eq!(
+///     decoded,
+///     (
+///         geohash::Coordinate {
+///             x: -120.65185546875,
+///             y: 35.31005859375,
+///         },
+///         0.02197265625,
+///         0.02197265625,
+///     ),
+/// );
+/// ```
+///
+/// Decoding a length ten geohash:
+///
+/// ```rust
+/// let geohash_str = "9q60y60rhs";
+///
+/// let decoded = geohash::decode(geohash_str);
+///
+/// assert_eq!(
+///     decoded,
+///     (
+///         geohash::Coordinate {
+///             x: -120.66229999065399,
+///             y: 35.300298035144806,
+///         },
+///         0.000002682209014892578,
+///         0.000005364418029785156,
+///     ),
+/// );
+/// ```
 pub fn decode(hash_str: &str) -> (Coordinate<f64>, f64, f64) {
     let (c0, c1) = decode_bbox(hash_str);
     (Coordinate {
@@ -191,6 +247,29 @@ pub fn neighbor(hash_str: &str, direction: Direction) -> String {
     encode(gl, hash_str.len())
 }
 
+/// Find all neighboring geohashes for the given geohash.
+///
+/// # Examples
+///
+/// ```
+/// let geohash_str = "9q60y60rhs";
+///
+/// let neighbors = geohash::neighbors(geohash_str);
+///
+/// assert_eq!(
+///     neighbors,
+///     geohash::Neighbors {
+///         n: "9q60y60rhw".to_owned(),
+///         ne: "9q60y60rhw".to_owned(),
+///         e: "9q60y60rhs".to_owned(),
+///         se: "9q60y60rhd".to_owned(),
+///         s: "9q60y60rhd".to_owned(),
+///         sw: "9q60y60rh6".to_owned(),
+///         w: "9q60y60rhk".to_owned(),
+///         nw: "9q60y60rhq".to_owned(),
+///     }
+/// );
+/// ```
 pub fn neighbors(hash_str: &str) -> Neighbors {
     Neighbors {
         sw: neighbor(hash_str, Direction::Sw),
