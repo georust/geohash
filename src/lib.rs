@@ -1,8 +1,8 @@
 #[cfg(test)]
 extern crate num_traits;
-extern crate geo;
+extern crate geo_types;
 
-pub use geo::Coordinate;
+pub use geo_types::Coordinate;
 
 static BASE32_CODES: &'static [char] = &['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'b',
                                          'c', 'd', 'e', 'f', 'g', 'h', 'j', 'k', 'm', 'n', 'p',
@@ -207,7 +207,7 @@ pub fn neighbors(hash_str: &str) -> Neighbors {
 #[cfg(test)]
 mod test {
     use {encode, decode, neighbors};
-    use geo::Coordinate;
+    use geo_types::Coordinate;
     use num_traits::Float;
 
     #[test]
