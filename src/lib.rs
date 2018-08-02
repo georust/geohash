@@ -218,8 +218,8 @@ pub fn decode_bbox(hash_str: &str) -> (Coordinate<f64>, Coordinate<f64>) {
 ///             x: -120.66229999065399,
 ///             y: 35.300298035144806,
 ///         },
-///         0.000002682209014892578,
 ///         0.000005364418029785156,
+///         0.000002682209014892578,
 ///     ),
 /// );
 /// ```
@@ -229,22 +229,21 @@ pub fn decode(hash_str: &str) -> (Coordinate<f64>, f64, f64) {
          x: (c0.x + c1.x) / 2f64,
          y: (c0.y + c1.y) / 2f64,
      },
-     (c1.y - c0.y) / 2f64,
-     (c1.x - c0.x) / 2f64)
+     (c1.x - c0.x) / 2f64,
+     (c1.y - c0.y) / 2f64)
 }
 
 pub fn neighbor(hash_str: &str, direction: Direction) -> String {
-    let b = decode(hash_str);
-    let c = b.0;
-    let gl = match direction.to_tuple() {
+    let (coord, lon_err, lat_err) = decode(hash_str);
+    let neighbor_coord = match direction.to_tuple() {
         (dlat, dlng) => {
             Coordinate {
-                x: c.x + 2f64 * b.1.abs() * (dlng as f64),
-                y: c.y + 2f64 * b.2.abs() * (dlat as f64),
+                x: coord.x + 2f64 * lon_err.abs() * (dlng as f64),
+                y: coord.y + 2f64 * lat_err.abs() * (dlat as f64),
             }
         }
     };
-    encode(gl, hash_str.len())
+    encode(neighbor_coord, hash_str.len())
 }
 
 /// Find all neighboring geohashes for the given geohash.
@@ -259,14 +258,14 @@ pub fn neighbor(hash_str: &str, direction: Direction) -> String {
 /// assert_eq!(
 ///     neighbors,
 ///     geohash::Neighbors {
-///         n: "9q60y60rhw".to_owned(),
-///         ne: "9q60y60rhw".to_owned(),
-///         e: "9q60y60rhs".to_owned(),
-///         se: "9q60y60rhd".to_owned(),
-///         s: "9q60y60rhd".to_owned(),
-///         sw: "9q60y60rh6".to_owned(),
+///         n: "9q60y60rht".to_owned(),
+///         ne: "9q60y60rhv".to_owned(),
+///         e: "9q60y60rhu".to_owned(),
+///         se: "9q60y60rhg".to_owned(),
+///         s: "9q60y60rhe".to_owned(),
+///         sw: "9q60y60rh7".to_owned(),
 ///         w: "9q60y60rhk".to_owned(),
-///         nw: "9q60y60rhq".to_owned(),
+///         nw: "9q60y60rhm".to_owned(),
 ///     }
 /// );
 /// ```
@@ -303,11 +302,23 @@ mod test {
         assert_eq!(encode(c1, 3usize), "wte".to_string());
     }
 
+    fn compare_within(a: f64, b: f64, diff: f64) {
+        assert!((a - b).abs() < diff, format!("{:?} and {:?} should be within {:?}", a, b, diff));
+    }
+
+    fn compare_decode(gh: &str, exp_lon: f64, exp_lat: f64, exp_lon_err: f64, exp_lat_err: f64) {
+        let (coord, lon_err, lat_err) = decode(gh);
+        let diff = 1e-5f64;
+        compare_within(lon_err, exp_lon_err, diff);
+        compare_within(lat_err, exp_lat_err, diff);
+        compare_within(coord.x, exp_lon, diff);
+        compare_within(coord.y, exp_lat, diff);
+    }
+
     #[test]
     fn test_decode() {
-        let (c, _, _) = decode("ww8p1r4t8");
-        assert_eq!(Float::abs_sub(c.y, 37.8324f64) < 1e-4f64, true);
-        assert_eq!(Float::abs_sub(c.x, 112.5584f64) < 1e-4f64, true);
+        compare_decode("ww8p1r4t8", 112.558386, 37.832386, 0.000021457, 0.000021457);
+        compare_decode("9g3q", -99.31640625, 19.423828125, 0.17578125, 0.087890625);
     }
 
 
@@ -322,5 +333,18 @@ mod test {
         assert_eq!(ns.nw, "ww8p1r4mz");
         assert_eq!(ns.n, "ww8p1r4tb");
         assert_eq!(ns.ne, "ww8p1r4tc");
+    }
+
+    #[test]
+    fn test_neighbor_wide() {
+        let ns = neighbors("9g3m");
+        assert_eq!(ns.sw, "9g3h");
+        assert_eq!(ns.s, "9g3k");
+        assert_eq!(ns.se, "9g3s");
+        assert_eq!(ns.w, "9g3j");
+        assert_eq!(ns.e, "9g3t");
+        assert_eq!(ns.nw, "9g3n");
+        assert_eq!(ns.n, "9g3q");
+        assert_eq!(ns.ne, "9g3w");
     }
 }
