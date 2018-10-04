@@ -286,7 +286,6 @@ pub fn neighbors(hash_str: &str) -> Neighbors {
 mod test {
     use {encode, decode, neighbors};
     use geo_types::Coordinate;
-    use num_traits::Float;
 
     #[test]
     fn test_encode() {
