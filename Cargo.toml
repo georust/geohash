@@ -12,6 +12,7 @@ documentation = "https://docs.rs/geohash/"
 
 [dependencies]
 geo-types = "0.1"
+failure = "0.1.2"
 
 [dev-dependencies]
 num-traits = "0.2"
