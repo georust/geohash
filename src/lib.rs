@@ -164,7 +164,7 @@ pub fn decode_bbox(hash_str: &str) -> Result<(Coordinate<f64>, Coordinate<f64>),
 
     for c in hash_str.chars() {
         hash_value = BASE32_CODES.iter().position(|n| *n == c)
-            .ok_or(GeohashError::InvalidHashCharacter { character: c })?;
+            .ok_or_else(|| GeohashError::InvalidHashCharacter { character: c })?;
 
         for bs in 0..5 {
             let bit = (hash_value >> (4 - bs)) & 1usize;
