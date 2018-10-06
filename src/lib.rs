@@ -1,8 +1,11 @@
 #[cfg(test)]
 extern crate num_traits;
 extern crate geo_types;
+#[macro_use] extern crate failure;
 
 pub use geo_types::Coordinate;
+
+use failure::Error;
 
 static BASE32_CODES: &'static [char] = &['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'b',
                                          'c', 'd', 'e', 'f', 'g', 'h', 'j', 'k', 'm', 'n', 'p',
@@ -54,6 +57,18 @@ impl Direction {
     }
 }
 
+#[derive(Debug, Fail)]
+enum GeohashError {
+    #[fail(display = "invalid hash character: {}", character)]
+    InvalidHashCharacter {
+        character: char
+    },
+    #[fail(display = "invalid coordinate range: {:?}", c)]
+    InvalidCoordinateRange {
+        c: Coordinate<f64>
+    }
+}
+
 /// Encode a coordinate to a geohash with length `len`.
 ///
 /// # Examples
@@ -63,7 +78,7 @@ impl Direction {
 /// ```rust
 /// let coord = geohash::Coordinate { x: -120.6623, y: 35.3003 };
 ///
-/// let geohash_string = geohash::encode(coord, 5);
+/// let geohash_string = geohash::encode(coord, 5).expect("Invalid coordinate");
 ///
 /// assert_eq!(geohash_string, "9q60y");
 /// ```
@@ -73,11 +88,11 @@ impl Direction {
 /// ```rust
 /// let coord = geohash::Coordinate { x: -120.6623, y: 35.3003 };
 ///
-/// let geohash_string = geohash::encode(coord, 10);
+/// let geohash_string = geohash::encode(coord, 10).expect("Invalid coordinate");
 ///
 /// assert_eq!(geohash_string, "9q60y60rhs");
 /// ```
-pub fn encode(c: Coordinate<f64>, len: usize) -> String {
+pub fn encode(c: Coordinate<f64>, len: usize) -> Result<String, Error> {
     let mut out = String::with_capacity(len);
 
     let mut bits: i8 = 0;
@@ -88,6 +103,10 @@ pub fn encode(c: Coordinate<f64>, len: usize) -> String {
     let mut max_lon = 180f64;
     let mut min_lon = -180f64;
     let mut mid: f64;
+
+    if c.x < min_lon || c.x > max_lon || c.y < min_lat || c.y > max_lat {
+        bail!(GeohashError::InvalidCoordinateRange { c });
+    }
 
     while out.len() < len {
         if bits_total % 2 == 0 {
@@ -120,7 +139,7 @@ pub fn encode(c: Coordinate<f64>, len: usize) -> String {
             hash_value = 0;
         }
     }
-    out
+    Ok(out)
 }
 
 /// ### Decode geohash string into latitude, longitude
@@ -134,7 +153,7 @@ pub fn encode(c: Coordinate<f64>, len: usize) -> String {
 /// * max_lat
 /// * min_lon
 /// * max_lon
-pub fn decode_bbox(hash_str: &str) -> (Coordinate<f64>, Coordinate<f64>) {
+pub fn decode_bbox(hash_str: &str) -> Result<(Coordinate<f64>, Coordinate<f64>), Error> {
     let mut is_lon = true;
     let mut max_lat = 90f64;
     let mut min_lat = -90f64;
@@ -144,7 +163,8 @@ pub fn decode_bbox(hash_str: &str) -> (Coordinate<f64>, Coordinate<f64>) {
     let mut hash_value: usize;
 
     for c in hash_str.chars() {
-        hash_value = BASE32_CODES.iter().position(|n| *n == c).unwrap();
+        hash_value = BASE32_CODES.iter().position(|n| *n == c)
+            .ok_or_else(|| GeohashError::InvalidHashCharacter { character: c })?;
 
         for bs in 0..5 {
             let bit = (hash_value >> (4 - bs)) & 1usize;
@@ -169,14 +189,14 @@ pub fn decode_bbox(hash_str: &str) -> (Coordinate<f64>, Coordinate<f64>) {
         }
     }
 
-    (Coordinate {
+    Ok((Coordinate {
          x: min_lon,
          y: min_lat,
      },
      Coordinate {
          x: max_lon,
          y: max_lat,
-     })
+     }))
 }
 
 /// Decode a geohash into a coordinate with some longitude/latitude error. The
@@ -189,7 +209,7 @@ pub fn decode_bbox(hash_str: &str) -> (Coordinate<f64>, Coordinate<f64>) {
 /// ```rust
 /// let geohash_str = "9q60y";
 ///
-/// let decoded = geohash::decode(geohash_str);
+/// let decoded = geohash::decode(geohash_str).expect("Invalid hash string");
 ///
 /// assert_eq!(
 ///     decoded,
@@ -209,7 +229,7 @@ pub fn decode_bbox(hash_str: &str) -> (Coordinate<f64>, Coordinate<f64>) {
 /// ```rust
 /// let geohash_str = "9q60y60rhs";
 ///
-/// let decoded = geohash::decode(geohash_str);
+/// let decoded = geohash::decode(geohash_str).expect("Invalid hash string");
 ///
 /// assert_eq!(
 ///     decoded,
@@ -223,18 +243,18 @@ pub fn decode_bbox(hash_str: &str) -> (Coordinate<f64>, Coordinate<f64>) {
 ///     ),
 /// );
 /// ```
-pub fn decode(hash_str: &str) -> (Coordinate<f64>, f64, f64) {
-    let (c0, c1) = decode_bbox(hash_str);
-    (Coordinate {
+pub fn decode(hash_str: &str) -> Result<(Coordinate<f64>, f64, f64), Error> {
+    let (c0, c1) = decode_bbox(hash_str)?;
+    Ok((Coordinate {
          x: (c0.x + c1.x) / 2f64,
          y: (c0.y + c1.y) / 2f64,
      },
      (c1.x - c0.x) / 2f64,
-     (c1.y - c0.y) / 2f64)
+     (c1.y - c0.y) / 2f64))
 }
 
-pub fn neighbor(hash_str: &str, direction: Direction) -> String {
-    let (coord, lon_err, lat_err) = decode(hash_str);
+pub fn neighbor(hash_str: &str, direction: Direction) -> Result<String, Error> {
+    let (coord, lon_err, lat_err) = decode(hash_str)?;
     let neighbor_coord = match direction.to_tuple() {
         (dlat, dlng) => {
             Coordinate {
@@ -253,7 +273,7 @@ pub fn neighbor(hash_str: &str, direction: Direction) -> String {
 /// ```
 /// let geohash_str = "9q60y60rhs";
 ///
-/// let neighbors = geohash::neighbors(geohash_str);
+/// let neighbors = geohash::neighbors(geohash_str).expect("Invalid hash string");
 ///
 /// assert_eq!(
 ///     neighbors,
@@ -269,17 +289,17 @@ pub fn neighbor(hash_str: &str, direction: Direction) -> String {
 ///     }
 /// );
 /// ```
-pub fn neighbors(hash_str: &str) -> Neighbors {
-    Neighbors {
-        sw: neighbor(hash_str, Direction::Sw),
-        s: neighbor(hash_str, Direction::S),
-        se: neighbor(hash_str, Direction::Se),
-        w: neighbor(hash_str, Direction::W),
-        e: neighbor(hash_str, Direction::E),
-        nw: neighbor(hash_str, Direction::Nw),
-        n: neighbor(hash_str, Direction::N),
-        ne: neighbor(hash_str, Direction::Ne),
-    }
+pub fn neighbors(hash_str: &str) -> Result<Neighbors, Error> {
+    Ok(Neighbors {
+        sw: neighbor(hash_str, Direction::Sw)?,
+        s: neighbor(hash_str, Direction::S)?,
+        se: neighbor(hash_str, Direction::Se)?,
+        w: neighbor(hash_str, Direction::W)?,
+        e: neighbor(hash_str, Direction::E)?,
+        nw: neighbor(hash_str, Direction::Nw)?,
+        n: neighbor(hash_str, Direction::N)?,
+        ne: neighbor(hash_str, Direction::Ne)?,
+    })
 }
 
 #[cfg(test)]
@@ -293,12 +313,18 @@ mod test {
             x: 112.5584f64,
             y: 37.8324f64,
         };
-        assert_eq!(encode(c0, 9usize), "ww8p1r4t8".to_string());
+        assert_eq!(encode(c0, 9usize).unwrap(), "ww8p1r4t8".to_string());
         let c1 = Coordinate {
             x: 117f64,
             y: 32f64,
         };
-        assert_eq!(encode(c1, 3usize), "wte".to_string());
+        assert_eq!(encode(c1, 3usize).unwrap(), "wte".to_string());
+
+        let c2 = Coordinate {
+            x: 190f64,
+            y: -100f64,
+        };
+        assert!(encode(c2, 3usize).is_err());
     }
 
     fn compare_within(a: f64, b: f64, diff: f64) {
@@ -306,7 +332,7 @@ mod test {
     }
 
     fn compare_decode(gh: &str, exp_lon: f64, exp_lat: f64, exp_lon_err: f64, exp_lat_err: f64) {
-        let (coord, lon_err, lat_err) = decode(gh);
+        let (coord, lon_err, lat_err) = decode(gh).unwrap();
         let diff = 1e-5f64;
         compare_within(lon_err, exp_lon_err, diff);
         compare_within(lat_err, exp_lat_err, diff);
@@ -318,12 +344,14 @@ mod test {
     fn test_decode() {
         compare_decode("ww8p1r4t8", 112.558386, 37.832386, 0.000021457, 0.000021457);
         compare_decode("9g3q", -99.31640625, 19.423828125, 0.17578125, 0.087890625);
+
+        assert!(decode("abcd").is_err());
     }
 
 
     #[test]
     fn test_neighbor() {
-        let ns = neighbors("ww8p1r4t8");
+        let ns = neighbors("ww8p1r4t8").unwrap();
         assert_eq!(ns.sw, "ww8p1r4mr");
         assert_eq!(ns.s, "ww8p1r4t2");
         assert_eq!(ns.se, "ww8p1r4t3");
@@ -336,7 +364,7 @@ mod test {
 
     #[test]
     fn test_neighbor_wide() {
-        let ns = neighbors("9g3m");
+        let ns = neighbors("9g3m").unwrap();
         assert_eq!(ns.sw, "9g3h");
         assert_eq!(ns.s, "9g3k");
         assert_eq!(ns.se, "9g3s");
