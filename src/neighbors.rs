@@ -11,36 +11,36 @@ pub struct Neighbors {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub(crate) enum Direction {
+pub enum Direction {
     /// North
     N,
     /// North-east
-    Ne,
+    NE,
     /// Eeast
     E,
     /// South-east
-    Se,
+    SE,
     /// South
     S,
     /// South-west
-    Sw,
+    SW,
     /// West
     W,
     /// North-west
-    Nw,
+    NW,
 }
 
 impl Direction {
     pub fn to_tuple(&self) -> (i8, i8) {
         match self {
-            Direction::Sw => (-1, -1),
+            Direction::SW => (-1, -1),
             Direction::S => (-1, 0),
-            Direction::Se => (-1, 1),
+            Direction::SE => (-1, 1),
             Direction::W => (0, -1),
             Direction::E => (0, 1),
-            Direction::Nw => (1, -1),
+            Direction::NW => (1, -1),
             Direction::N => (1, 0),
-            Direction::Ne => (1, 1),
+            Direction::NE => (1, 1),
         }
     }
 }

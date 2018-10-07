@@ -7,24 +7,9 @@ Rust-Geohash is a Rust library for Geohash algorithm. Ported from [node-geohash]
 
 [Documentation](https://docs.rs/geohash/)
 
-## Usage
+## Docs
 
-```rust
-extern crate geohash;
-
-use std::error::Error;
-
-use geo::Coordinate;
-use geohash::{encode, decode, neighbor, Direction};
-
-fn main() -> Result<(), Box<Error>> {
-    let c = Coordinate{x: 112.5584f64, y: 37.8324f64};
-    println!("encoding 37.8324, 112.5584: {}", encode(c, 9u)?);
-    let (c, _, _) = decode("ww8p1r4t8")?;
-    println!("decoding ww8p1r4t8 to: {}, {}", c.y, c.x);
-    let sw = neighbor("ww8p1r4t8", Direction::SW)?;
-}
-```
+Check the API doc at [docs.rs](https://docs.rs/geohash/)
 
 ## License
 

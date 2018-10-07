@@ -10,7 +10,7 @@ static BASE32_CODES: &'static [char] = &[
 
 /// Encode a coordinate to a geohash with length `len`.
 ///
-/// # Examples
+/// ### Examples
 ///
 /// Encoding a coordinate to a length five geohash:
 ///
@@ -81,7 +81,7 @@ pub fn encode(c: Coordinate<f64>, len: usize) -> Result<String, Error> {
     Ok(out)
 }
 
-/// ### Decode geohash string into latitude, longitude
+/// Decode geohash string into latitude, longitude
 ///
 /// Parameters:
 /// Geohash encoded `&str`
@@ -145,7 +145,7 @@ pub fn decode_bbox(hash_str: &str) -> Result<(Coordinate<f64>, Coordinate<f64>),
 /// Decode a geohash into a coordinate with some longitude/latitude error. The
 /// return value is `(<coordinate>, <longitude error>, <latitude error>)`.
 ///
-/// # Examples
+/// ### Examples
 ///
 /// Decoding a length five geohash:
 ///
@@ -198,8 +198,8 @@ pub fn decode(hash_str: &str) -> Result<(Coordinate<f64>, f64, f64), Error> {
     ))
 }
 
-///
-fn neighbor(hash_str: &str, direction: Direction) -> Result<String, Error> {
+/// Find neighboring geohashes for the given geohash and direction.
+pub fn neighbor(hash_str: &str, direction: Direction) -> Result<String, Error> {
     let (coord, lon_err, lat_err) = decode(hash_str)?;
     let neighbor_coord = match direction.to_tuple() {
         (dlat, dlng) => Coordinate {
@@ -212,7 +212,7 @@ fn neighbor(hash_str: &str, direction: Direction) -> Result<String, Error> {
 
 /// Find all neighboring geohashes for the given geohash.
 ///
-/// # Examples
+/// ### Examples
 ///
 /// ```
 /// let geohash_str = "9q60y60rhs";
@@ -235,13 +235,13 @@ fn neighbor(hash_str: &str, direction: Direction) -> Result<String, Error> {
 /// ```
 pub fn neighbors(hash_str: &str) -> Result<Neighbors, Error> {
     Ok(Neighbors {
-        sw: neighbor(hash_str, Direction::Sw)?,
+        sw: neighbor(hash_str, Direction::SW)?,
         s: neighbor(hash_str, Direction::S)?,
-        se: neighbor(hash_str, Direction::Se)?,
+        se: neighbor(hash_str, Direction::SE)?,
         w: neighbor(hash_str, Direction::W)?,
         e: neighbor(hash_str, Direction::E)?,
-        nw: neighbor(hash_str, Direction::Nw)?,
+        nw: neighbor(hash_str, Direction::NW)?,
         n: neighbor(hash_str, Direction::N)?,
-        ne: neighbor(hash_str, Direction::Ne)?,
+        ne: neighbor(hash_str, Direction::NE)?,
     })
 }
