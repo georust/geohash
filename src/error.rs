@@ -1,4 +1,4 @@
-use crate::Coordinate;
+use ::Coordinate;
 
 #[derive(Debug, Fail)]
 pub enum GeohashError {

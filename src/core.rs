@@ -1,5 +1,5 @@
-use crate::neighbors::Direction;
-use crate::{Coordinate, GeohashError, Neighbors, Rect};
+use ::neighbors::Direction;
+use ::{Coordinate, GeohashError, Neighbors, Rect};
 
 use failure::Error;
 
