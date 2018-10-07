@@ -11,7 +11,7 @@ readme = "README.md"
 documentation = "https://docs.rs/geohash/"
 
 [dependencies]
-geo-types = "0.1"
+geo-types = "0.2"
 failure = "0.1.2"
 
 [dev-dependencies]

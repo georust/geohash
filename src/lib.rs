@@ -43,5 +43,5 @@ mod neighbors;
 
 pub use core::{decode, decode_bbox, encode, neighbor, neighbors};
 pub use error::GeohashError;
-pub use geo_types::Coordinate;
+pub use geo_types::{Coordinate, Rect};
 pub use neighbors::{Direction, Neighbors};

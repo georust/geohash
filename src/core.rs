@@ -1,5 +1,5 @@
 use crate::neighbors::Direction;
-use crate::{Coordinate, GeohashError, Neighbors};
+use crate::{Coordinate, GeohashError, Neighbors, Rect};
 
 use failure::Error;
 
@@ -92,7 +92,7 @@ pub fn encode(c: Coordinate<f64>, len: usize) -> Result<String, Error> {
 /// * max_lat
 /// * min_lon
 /// * max_lon
-pub fn decode_bbox(hash_str: &str) -> Result<(Coordinate<f64>, Coordinate<f64>), Error> {
+pub fn decode_bbox(hash_str: &str) -> Result<Rect<f64>, Error> {
     let mut is_lon = true;
     let mut max_lat = 90f64;
     let mut min_lat = -90f64;
@@ -130,16 +130,16 @@ pub fn decode_bbox(hash_str: &str) -> Result<(Coordinate<f64>, Coordinate<f64>),
         }
     }
 
-    Ok((
-        Coordinate {
+    Ok(Rect {
+        min: Coordinate {
             x: min_lon,
             y: min_lat,
         },
-        Coordinate {
+        max: Coordinate {
             x: max_lon,
             y: max_lat,
         },
-    ))
+    })
 }
 
 /// Decode a geohash into a coordinate with some longitude/latitude error. The
@@ -187,7 +187,9 @@ pub fn decode_bbox(hash_str: &str) -> Result<(Coordinate<f64>, Coordinate<f64>),
 /// );
 /// ```
 pub fn decode(hash_str: &str) -> Result<(Coordinate<f64>, f64, f64), Error> {
-    let (c0, c1) = decode_bbox(hash_str)?;
+    let rect = decode_bbox(hash_str)?;
+    let c0 = rect.min;
+    let c1 = rect.max;
     Ok((
         Coordinate {
             x: (c0.x + c1.x) / 2f64,
