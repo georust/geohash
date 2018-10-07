@@ -31,16 +31,16 @@ pub enum Direction {
 }
 
 impl Direction {
-    pub fn to_tuple(&self) -> (i8, i8) {
+    pub fn to_tuple(self) -> (f64, f64) {
         match self {
-            Direction::SW => (-1, -1),
-            Direction::S => (-1, 0),
-            Direction::SE => (-1, 1),
-            Direction::W => (0, -1),
-            Direction::E => (0, 1),
-            Direction::NW => (1, -1),
-            Direction::N => (1, 0),
-            Direction::NE => (1, 1),
+            Direction::SW => (-1f64, -1f64),
+            Direction::S => (-1f64, 0f64),
+            Direction::SE => (-1f64, 1f64),
+            Direction::W => (0f64, -1f64),
+            Direction::E => (0f64, 1f64),
+            Direction::NW => (1f64, -1f64),
+            Direction::N => (1f64, 0f64),
+            Direction::NE => (1f64, 1f64),
         }
     }
 }

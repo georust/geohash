@@ -205,8 +205,8 @@ pub fn neighbor(hash_str: &str, direction: Direction) -> Result<String, Error> {
     let (coord, lon_err, lat_err) = decode(hash_str)?;
     let neighbor_coord = match direction.to_tuple() {
         (dlat, dlng) => Coordinate {
-            x: coord.x + 2f64 * lon_err.abs() * (dlng as f64),
-            y: coord.y + 2f64 * lat_err.abs() * (dlat as f64),
+            x: coord.x + 2f64 * lon_err.abs() * dlng,
+            y: coord.y + 2f64 * lat_err.abs() * dlat,
         },
     };
     encode(neighbor_coord, hash_str.len())
