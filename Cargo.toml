@@ -1,7 +1,7 @@
 [package]
 
 name = "geohash"
-version = "0.7.1"
+version = "0.8.0"
 authors = [ "Ning Sun <sunng@about.me>" ]
 description = "Geohash implementation for Rust."
 license = "MIT/Apache-2.0"
