@@ -34,7 +34,6 @@ static BASE32_CODES: &'static [char] = &[
 pub fn encode(c: Coordinate<f64>, len: usize) -> Result<String, Error> {
     let mut out = String::with_capacity(len);
 
-    let mut bits: i8 = 0;
     let mut bits_total: i8 = 0;
     let mut hash_value: usize = 0;
     let mut max_lat = 90f64;
@@ -47,7 +46,7 @@ pub fn encode(c: Coordinate<f64>, len: usize) -> Result<String, Error> {
     }
 
     while out.len() < len {
-        while bits != 5 {
+        for _ in 0..5 {
             if bits_total % 2 == 0 {
                 let mid = (max_lon + min_lon) / 2f64;
                 if c.x > mid {
@@ -67,16 +66,12 @@ pub fn encode(c: Coordinate<f64>, len: usize) -> Result<String, Error> {
                     max_lat = mid;
                 }
             }
-
-            bits += 1;
             bits_total += 1;
         }
 
         let code: char = BASE32_CODES[hash_value];
         out.push(code);
-        bits = 0;
         hash_value = 0;
-
     }
     Ok(out)
 }
