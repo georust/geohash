@@ -97,10 +97,7 @@ pub fn decode_bbox(hash_str: &str) -> Result<Rect<f64>, Error> {
     let mut hash_value: usize;
 
     for c in hash_str.chars() {
-        hash_value = BASE32_CODES
-            .iter()
-            .position(|n| *n == c)
-            .ok_or_else(|| GeohashError::InvalidHashCharacter { character: c })?;
+        hash_value = hash_value_of_char(c)?;
 
         for bs in 0..5 {
             let bit = (hash_value >> (4 - bs)) & 1usize;
@@ -135,6 +132,22 @@ pub fn decode_bbox(hash_str: &str) -> Result<Rect<f64>, Error> {
             y: max_lat,
         },
     })
+}
+
+fn hash_value_of_char(c: char) -> Result<usize, Error> {
+    let ord = c as usize;
+    if 48 <= ord && ord <= 57 {
+        return Ok(ord - 48);
+    } else if 98 <= ord && ord <= 104 {
+        return Ok(ord - 88);
+    } else if 106 <= ord && ord <= 107 {
+        return Ok(ord - 89);
+    } else if 109 <= ord && ord <= 110 {
+        return Ok(ord - 90);
+    } else if 112 <= ord && ord <= 122 {
+        return Ok(ord - 91);
+    }
+    Err(GeohashError::InvalidHashCharacter { character: c })?
 }
 
 /// Decode a geohash into a coordinate with some longitude/latitude error. The
