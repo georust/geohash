@@ -34,49 +34,44 @@ static BASE32_CODES: &'static [char] = &[
 pub fn encode(c: Coordinate<f64>, len: usize) -> Result<String, Error> {
     let mut out = String::with_capacity(len);
 
-    let mut bits: i8 = 0;
     let mut bits_total: i8 = 0;
     let mut hash_value: usize = 0;
     let mut max_lat = 90f64;
     let mut min_lat = -90f64;
     let mut max_lon = 180f64;
     let mut min_lon = -180f64;
-    let mut mid: f64;
 
     if c.x < min_lon || c.x > max_lon || c.y < min_lat || c.y > max_lat {
         bail!(GeohashError::InvalidCoordinateRange { c });
     }
 
     while out.len() < len {
-        if bits_total % 2 == 0 {
-            mid = (max_lon + min_lon) / 2f64;
-            if c.x > mid {
-                hash_value = (hash_value << 1) + 1usize;
-                min_lon = mid;
+        for _ in 0..5 {
+            if bits_total % 2 == 0 {
+                let mid = (max_lon + min_lon) / 2f64;
+                if c.x > mid {
+                    hash_value = (hash_value << 1) + 1usize;
+                    min_lon = mid;
+                } else {
+                    hash_value <<= 1;
+                    max_lon = mid;
+                }
             } else {
-                hash_value <<= 1;
-                max_lon = mid;
+                let mid = (max_lat + min_lat) / 2f64;
+                if c.y > mid {
+                    hash_value = (hash_value << 1) + 1usize;
+                    min_lat = mid;
+                } else {
+                    hash_value <<= 1;
+                    max_lat = mid;
+                }
             }
-        } else {
-            mid = (max_lat + min_lat) / 2f64;
-            if c.y > mid {
-                hash_value = (hash_value << 1) + 1usize;
-                min_lat = mid;
-            } else {
-                hash_value <<= 1;
-                max_lat = mid;
-            }
+            bits_total += 1;
         }
 
-        bits += 1;
-        bits_total += 1;
-
-        if bits == 5 {
-            let code: char = BASE32_CODES[hash_value];
-            out.push(code);
-            bits = 0;
-            hash_value = 0;
-        }
+        let code: char = BASE32_CODES[hash_value];
+        out.push(code);
+        hash_value = 0;
     }
     Ok(out)
 }
@@ -102,10 +97,7 @@ pub fn decode_bbox(hash_str: &str) -> Result<Rect<f64>, Error> {
     let mut hash_value: usize;
 
     for c in hash_str.chars() {
-        hash_value = BASE32_CODES
-            .iter()
-            .position(|n| *n == c)
-            .ok_or_else(|| GeohashError::InvalidHashCharacter { character: c })?;
+        hash_value = hash_value_of_char(c)?;
 
         for bs in 0..5 {
             let bit = (hash_value >> (4 - bs)) & 1usize;
@@ -140,6 +132,22 @@ pub fn decode_bbox(hash_str: &str) -> Result<Rect<f64>, Error> {
             y: max_lat,
         },
     })
+}
+
+fn hash_value_of_char(c: char) -> Result<usize, Error> {
+    let ord = c as usize;
+    if 48 <= ord && ord <= 57 {
+        return Ok(ord - 48);
+    } else if 98 <= ord && ord <= 104 {
+        return Ok(ord - 88);
+    } else if 106 <= ord && ord <= 107 {
+        return Ok(ord - 89);
+    } else if 109 <= ord && ord <= 110 {
+        return Ok(ord - 90);
+    } else if 112 <= ord && ord <= 122 {
+        return Ok(ord - 91);
+    }
+    Err(GeohashError::InvalidHashCharacter { character: c })?
 }
 
 /// Decode a geohash into a coordinate with some longitude/latitude error. The
