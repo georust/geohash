@@ -122,16 +122,16 @@ pub fn decode_bbox(hash_str: &str) -> Result<Rect<f64>, Error> {
         }
     }
 
-    Ok(Rect {
-        min: Coordinate {
+    Ok(Rect::new(
+        Coordinate {
             x: min_lon,
             y: min_lat,
         },
-        max: Coordinate {
+        Coordinate {
             x: max_lon,
             y: max_lat,
         },
-    })
+    ))
 }
 
 fn hash_value_of_char(c: char) -> Result<usize, Error> {
@@ -196,8 +196,8 @@ fn hash_value_of_char(c: char) -> Result<usize, Error> {
 /// ```
 pub fn decode(hash_str: &str) -> Result<(Coordinate<f64>, f64, f64), Error> {
     let rect = decode_bbox(hash_str)?;
-    let c0 = rect.min;
-    let c1 = rect.max;
+    let c0 = rect.min();
+    let c1 = rect.max();
     Ok((
         Coordinate {
             x: (c0.x + c1.x) / 2f64,
