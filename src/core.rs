@@ -3,7 +3,7 @@ use crate::{Coordinate, GeohashError, Neighbors, Rect};
 
 use failure::Error;
 
-static BASE32_CODES: &'static [char] = &[
+static BASE32_CODES: &[char] = &[
     '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j', 'k',
     'm', 'n', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
 ];
@@ -147,7 +147,7 @@ fn hash_value_of_char(c: char) -> Result<usize, Error> {
     } else if 112 <= ord && ord <= 122 {
         return Ok(ord - 91);
     }
-    Err(GeohashError::InvalidHashCharacter { character: c })?
+    Err(GeohashError::InvalidHashCharacter { character: c }.into())
 }
 
 /// Decode a geohash into a coordinate with some longitude/latitude error. The
@@ -211,11 +211,10 @@ pub fn decode(hash_str: &str) -> Result<(Coordinate<f64>, f64, f64), Error> {
 /// Find neighboring geohashes for the given geohash and direction.
 pub fn neighbor(hash_str: &str, direction: Direction) -> Result<String, Error> {
     let (coord, lon_err, lat_err) = decode(hash_str)?;
-    let neighbor_coord = match direction.to_tuple() {
-        (dlat, dlng) => Coordinate {
-            x: coord.x + 2f64 * lon_err.abs() * dlng,
-            y: coord.y + 2f64 * lat_err.abs() * dlat,
-        },
+    let (dlat, dlng) = direction.to_tuple();
+    let neighbor_coord = Coordinate {
+        x: coord.x + 2f64 * lon_err.abs() * dlng,
+        y: coord.y + 2f64 * lat_err.abs() * dlat,
     };
     encode(neighbor_coord, hash_str.len())
 }
