@@ -20,8 +20,4 @@ impl fmt::Display for GeohashError {
     }
 }
 
-impl Error for GeohashError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        None
-    }
-}
+impl Error for GeohashError {}
