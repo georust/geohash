@@ -13,7 +13,6 @@ edition = "2018"
 
 [dependencies]
 geo-types = "0.6.0"
-failure = "0.1.2"
 
 [dev-dependencies]
 num-traits = "0.2"

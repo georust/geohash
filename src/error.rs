@@ -1,9 +1,27 @@
+use std::error::Error;
+use std::fmt;
+
 use crate::Coordinate;
 
-#[derive(Debug, Fail)]
+#[derive(Debug)]
 pub enum GeohashError {
-    #[fail(display = "invalid hash character: {}", character)]
-    InvalidHashCharacter { character: char },
-    #[fail(display = "invalid coordinate range: {:?}", c)]
-    InvalidCoordinateRange { c: Coordinate<f64> },
+    InvalidHashCharacter(char),
+    InvalidCoordinateRange(Coordinate<f64>),
+}
+
+impl fmt::Display for GeohashError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            GeohashError::InvalidHashCharacter(c) => write!(f, "invalid hash character: {}", c),
+            GeohashError::InvalidCoordinateRange(c) => {
+                write!(f, "invalid coordinate range: {:?}", c)
+            }
+        }
+    }
+}
+
+impl Error for GeohashError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        None
+    }
 }

@@ -1,8 +1,6 @@
 use crate::neighbors::Direction;
 use crate::{Coordinate, GeohashError, Neighbors, Rect};
 
-use failure::Error;
-
 static BASE32_CODES: &[char] = &[
     '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j', 'k',
     'm', 'n', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
@@ -31,7 +29,7 @@ static BASE32_CODES: &[char] = &[
 ///
 /// assert_eq!(geohash_string, "9q60y60rhs");
 /// ```
-pub fn encode(c: Coordinate<f64>, len: usize) -> Result<String, Error> {
+pub fn encode(c: Coordinate<f64>, len: usize) -> Result<String, GeohashError> {
     let mut out = String::with_capacity(len);
 
     let mut bits_total: i8 = 0;
@@ -42,7 +40,7 @@ pub fn encode(c: Coordinate<f64>, len: usize) -> Result<String, Error> {
     let mut min_lon = -180f64;
 
     if c.x < min_lon || c.x > max_lon || c.y < min_lat || c.y > max_lat {
-        bail!(GeohashError::InvalidCoordinateRange { c });
+        return Err(GeohashError::InvalidCoordinateRange(c));
     }
 
     while out.len() < len {
@@ -87,7 +85,7 @@ pub fn encode(c: Coordinate<f64>, len: usize) -> Result<String, Error> {
 /// * max_lat
 /// * min_lon
 /// * max_lon
-pub fn decode_bbox(hash_str: &str) -> Result<Rect<f64>, Error> {
+pub fn decode_bbox(hash_str: &str) -> Result<Rect<f64>, GeohashError> {
     let mut is_lon = true;
     let mut max_lat = 90f64;
     let mut min_lat = -90f64;
@@ -134,7 +132,7 @@ pub fn decode_bbox(hash_str: &str) -> Result<Rect<f64>, Error> {
     ))
 }
 
-fn hash_value_of_char(c: char) -> Result<usize, Error> {
+fn hash_value_of_char(c: char) -> Result<usize, GeohashError> {
     let ord = c as usize;
     if 48 <= ord && ord <= 57 {
         return Ok(ord - 48);
@@ -147,7 +145,7 @@ fn hash_value_of_char(c: char) -> Result<usize, Error> {
     } else if 112 <= ord && ord <= 122 {
         return Ok(ord - 91);
     }
-    Err(GeohashError::InvalidHashCharacter { character: c }.into())
+    Err(GeohashError::InvalidHashCharacter(c))
 }
 
 /// Decode a geohash into a coordinate with some longitude/latitude error. The
@@ -194,7 +192,7 @@ fn hash_value_of_char(c: char) -> Result<usize, Error> {
 ///     ),
 /// );
 /// ```
-pub fn decode(hash_str: &str) -> Result<(Coordinate<f64>, f64, f64), Error> {
+pub fn decode(hash_str: &str) -> Result<(Coordinate<f64>, f64, f64), GeohashError> {
     let rect = decode_bbox(hash_str)?;
     let c0 = rect.min();
     let c1 = rect.max();
@@ -209,7 +207,7 @@ pub fn decode(hash_str: &str) -> Result<(Coordinate<f64>, f64, f64), Error> {
 }
 
 /// Find neighboring geohashes for the given geohash and direction.
-pub fn neighbor(hash_str: &str, direction: Direction) -> Result<String, Error> {
+pub fn neighbor(hash_str: &str, direction: Direction) -> Result<String, GeohashError> {
     let (coord, lon_err, lat_err) = decode(hash_str)?;
     let (dlat, dlng) = direction.to_tuple();
     let neighbor_coord = Coordinate {
@@ -242,7 +240,7 @@ pub fn neighbor(hash_str: &str, direction: Direction) -> Result<String, Error> {
 ///     }
 /// );
 /// ```
-pub fn neighbors(hash_str: &str) -> Result<Neighbors, Error> {
+pub fn neighbors(hash_str: &str) -> Result<Neighbors, GeohashError> {
     Ok(Neighbors {
         sw: neighbor(hash_str, Direction::SW)?,
         s: neighbor(hash_str, Direction::S)?,
