@@ -1,5 +1,7 @@
 language: rust
 rust:
-  - nightly
-  - beta
   - stable
+before_script:
+  - rustup component add clippy
+script:
+  - cargo clippy -- -D warnings && cargo test
