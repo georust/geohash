@@ -34,8 +34,6 @@
 extern crate geo_types;
 #[cfg(test)]
 extern crate num_traits;
-#[macro_use]
-extern crate failure;
 
 mod core;
 mod error;
