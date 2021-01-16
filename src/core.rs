@@ -134,15 +134,15 @@ pub fn decode_bbox(hash_str: &str) -> Result<Rect<f64>, GeohashError> {
 
 fn hash_value_of_char(c: char) -> Result<usize, GeohashError> {
     let ord = c as usize;
-    if 48 <= ord && ord <= 57 {
+    if (48..=57).contains(&ord) {
         return Ok(ord - 48);
-    } else if 98 <= ord && ord <= 104 {
+    } else if (98..=104).contains(&ord) {
         return Ok(ord - 88);
-    } else if 106 <= ord && ord <= 107 {
+    } else if (106..=107).contains(&ord) {
         return Ok(ord - 89);
-    } else if 109 <= ord && ord <= 110 {
+    } else if (109..=110).contains(&ord) {
         return Ok(ord - 90);
-    } else if 112 <= ord && ord <= 122 {
+    } else if (112..=122).contains(&ord) {
         return Ok(ord - 91);
     }
     Err(GeohashError::InvalidHashCharacter(c))
