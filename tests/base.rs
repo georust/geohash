@@ -26,7 +26,10 @@ fn test_encode() {
 fn compare_within(a: f64, b: f64, diff: f64) {
     assert!(
         (a - b).abs() < diff,
-        format!("{:?} and {:?} should be within {:?}", a, b, diff)
+        "{:?} and {:?} should be within {:?}",
+        a,
+        b,
+        diff
     );
 }
 
