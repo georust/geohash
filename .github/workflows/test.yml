@@ -18,9 +18,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: ${{ matrix.rust }}
-          components:
-            - clippy
-            - rustfmt
+          components: clippy,rustfmt
       - run: cargo fmt -- --check            
       - run: cargo install cargo-all-features
       - run: cargo build-all-features
