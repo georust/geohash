@@ -7,6 +7,7 @@ use crate::Coordinate;
 pub enum GeohashError {
     InvalidHashCharacter(char),
     InvalidCoordinateRange(Coordinate<f64>),
+    InvalidHash(String),
 }
 
 impl fmt::Display for GeohashError {
@@ -16,6 +17,7 @@ impl fmt::Display for GeohashError {
             GeohashError::InvalidCoordinateRange(c) => {
                 write!(f, "invalid coordinate range: {:?}", c)
             }
+            GeohashError::InvalidHash(msg) => write!(f, "Invalid input hash: {}", msg),
         }
     }
 }
