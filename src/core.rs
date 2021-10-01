@@ -1,18 +1,15 @@
 use crate::neighbors::Direction;
 use crate::{Coordinate, GeohashError, Neighbors, Rect};
-use data_encoding::Encoding;
-use data_encoding_macro::new_encoding;
+use libm::ldexp;
 
-const BASE32_GEOHASH: Encoding = new_encoding! {
-    symbols: "0123456789bcdefghjkmnpqrstuvwxyz",
-};
 
 const EXP_232: f64 = 4294967296.0;
+// const MASK: u64 = 0x1f<<59;
 
-// static BASE32_CODES: &[char] = &[
-//     '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j', 'k',
-//     'm', 'n', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
-// ];
+static BASE32_CODES: &[char] = &[
+    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j', 'k',
+    'm', 'n', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+];
 
 static DECODER: &[u8] = &[
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
@@ -55,50 +52,51 @@ static DECODER: &[u8] = &[
 ///
 /// assert_eq!(geohash_string, "9q60y60rhs");
 /// ```
-// pub fn encode(c: Coordinate<f64>, len: usize) -> Result<String, GeohashError> {
-//     let mut out = String::with_capacity(len);
+pub fn old_encode(c: Coordinate<f64>, len: usize) -> Result<String, GeohashError> {
+    let mut out = String::with_capacity(len);
 
-//     let mut bits_total: i8 = 0;
-//     let mut hash_value: usize = 0;
-//     let mut max_lat = 90f64;
-//     let mut min_lat = -90f64;
-//     let mut max_lon = 180f64;
-//     let mut min_lon = -180f64;
+    let mut bits_total: i8 = 0;
+    let mut hash_value: usize = 0;
+    let mut max_lat = 90f64;
+    let mut min_lat = -90f64;
+    let mut max_lon = 180f64;
+    let mut min_lon = -180f64;
 
-//     if c.x < min_lon || c.x > max_lon || c.y < min_lat || c.y > max_lat {
-//         return Err(GeohashError::InvalidCoordinateRange(c));
-//     }
+    if c.x < min_lon || c.x > max_lon || c.y < min_lat || c.y > max_lat {
+        return Err(GeohashError::InvalidCoordinateRange(c));
+    }
 
-//     while out.len() < len {
-//         for _ in 0..5 {
-//             if bits_total % 2 == 0 {
-//                 let mid = (max_lon + min_lon) / 2f64;
-//                 if c.x > mid {
-//                     hash_value = (hash_value << 1) + 1usize;
-//                     min_lon = mid;
-//                 } else {
-//                     hash_value <<= 1;
-//                     max_lon = mid;
-//                 }
-//             } else {
-//                 let mid = (max_lat + min_lat) / 2f64;
-//                 if c.y > mid {
-//                     hash_value = (hash_value << 1) + 1usize;
-//                     min_lat = mid;
-//                 } else {
-//                     hash_value <<= 1;
-//                     max_lat = mid;
-//                 }
-//             }
-//             bits_total += 1;
-//         }
+    while out.len() < len {
+        for _ in 0..5 {
+            if bits_total % 2 == 0 {
+                let mid = (max_lon + min_lon) / 2f64;
+                if c.x > mid {
+                    hash_value = (hash_value << 1) + 1usize;
+                    min_lon = mid;
+                } else {
+                    hash_value <<= 1;
+                    max_lon = mid;
+                }
+            } else {
+                let mid = (max_lat + min_lat) / 2f64;
+                if c.y > mid {
+                    hash_value = (hash_value << 1) + 1usize;
+                    min_lat = mid;
+                } else {
+                    hash_value <<= 1;
+                    max_lat = mid;
+                }
+            }
+            bits_total += 1;
+        }
 
-//         let code: char = BASE32_CODES[hash_value];
-//         out.push(code);
-//         hash_value = 0;
-//     }
-//     Ok(out)
-// }
+        let code: char = BASE32_CODES[hash_value];
+        out.push(code);
+        hash_value = 0;
+    }
+    Ok(out)
+}
+
 fn spread(x: u32) -> u64 {
     let mut new_x = x as u64;
     new_x = (new_x | (new_x << 16)) & 0x0000ffff0000ffff;
@@ -124,24 +122,37 @@ pub fn encode(c: Coordinate<f64>, len: usize) -> Result<String, GeohashError> {
         return Err(GeohashError::InvalidCoordinateRange(c));
     }
 
-    let lat32 = ((c.y / 180.0 + 1.5).to_bits() >> 20) as u32;
-    let lon32 = ((c.x / 360.0 + 1.5).to_bits() >> 20) as u32;
+    if len < 1 || len > 12 {
+        return Err(GeohashError::InvalidLength(len));
+    }
 
-    let interleaved_int = interleave(lat32, lon32);
+    let lat32 = ((c.y * 0.005555555555555556 + 1.5).to_bits() >> 20) as u32;
+    let lon32 = ((c.x * 0.002777777777777778 + 1.5).to_bits() >> 20) as u32;
+
+    let mut interleaved_int = interleave(lat32, lon32);
     // let mut out = String::new();
-    // let mut encoded = vec!['=' as u8; 12];
-    // for i in 0..12 {
-    //     encoded[11 - i] = BASE32_CODES[(interleaved_int&0x1f) as usize];
+    // let mut index = 0;
+    // while index < 12 && interleaved_int > 0 {
+    //     out.push(BASE32_CODES[(interleaved_int&0x1f) as usize]);
+    //     index += 1;
     //     interleaved_int >>= 5;
+
     // }
-    // let mut out = String::from_utf8(encoded).unwrap();
-    // out.truncate(len);
-    // Ok(out)
+    let mut out = String::with_capacity(len);
+    for _ in 0..len {
+        // println!("{:#b}, {:#b}", interleaved_int, interleaved_int&0x1f);
+        // let code = (interleaved_int&(MASK))>>59;
+        let code = (interleaved_int>>59) as usize&(0x1f);
+        // println!("{:#b}, {:#b}, {:#b}", interleaved_int, interleaved_int&0x1f, code);
+        out.push(BASE32_CODES[(code) as usize]);
+        interleaved_int <<= 5;
+    }
+    Ok(out)
 
-    let mut encoded = BASE32_GEOHASH.encode(&interleaved_int.to_be_bytes());
-    encoded.truncate(len);
+    // let mut encoded = BASE32_GEOHASH.encode(&interleaved_int.to_be_bytes());
+    // encoded.truncate(len);
 
-    Ok(encoded)
+    // Ok(encoded)
 }
 
 fn squash(x: u64) -> u32 {
@@ -199,9 +210,10 @@ fn decode_range(x: u32, r: f64) -> f64 {
 fn error_with_precision(bits: u32) -> (f64, f64) {
     let lat_bits = bits / 2;
     let long_bits = bits - lat_bits;
-    // simule ldexp (180.0, -lat_bits)
-    let lat_err = 180.0 * f64::exp2(-(lat_bits as f64));
-    let long_err = 360.0 * f64::exp2(-(long_bits as f64));
+    // let lat_err = 180.0 * f64::exp2(-(lat_bits as f64));
+    // let long_err = 360.0 * f64::exp2(-(long_bits as f64));
+    let lat_err = ldexp(180.0, -(lat_bits as i32));
+    let long_err = ldexp(360.0, -(long_bits as i32));
     (lat_err, long_err)
 }
 
@@ -221,52 +233,52 @@ fn bbox_int_with_precision(hash: u64, bits: u32) -> Rect<f64> {
     )
 }
 
-// pub fn decode_bbox(hash_str: &str) -> Result<Rect<f64>, GeohashError> {
-//     let mut is_lon = true;
-//     let mut max_lat = 90f64;
-//     let mut min_lat = -90f64;
-//     let mut max_lon = 180f64;
-//     let mut min_lon = -180f64;
-//     let mut mid: f64;
-//     let mut hash_value: usize;
+pub fn old_decode_bbox(hash_str: &str) -> Result<Rect<f64>, GeohashError> {
+    let mut is_lon = true;
+    let mut max_lat = 90f64;
+    let mut min_lat = -90f64;
+    let mut max_lon = 180f64;
+    let mut min_lon = -180f64;
+    let mut mid: f64;
+    let mut hash_value: usize;
 
-//     for c in hash_str.chars() {
-//         hash_value = hash_value_of_char(c)?;
+    for c in hash_str.chars() {
+        hash_value = hash_value_of_char(c)?;
 
-//         for bs in 0..5 {
-//             let bit = (hash_value >> (4 - bs)) & 1usize;
-//             if is_lon {
-//                 mid = (max_lon + min_lon) / 2f64;
+        for bs in 0..5 {
+            let bit = (hash_value >> (4 - bs)) & 1usize;
+            if is_lon {
+                mid = (max_lon + min_lon) / 2f64;
 
-//                 if bit == 1 {
-//                     min_lon = mid;
-//                 } else {
-//                     max_lon = mid;
-//                 }
-//             } else {
-//                 mid = (max_lat + min_lat) / 2f64;
+                if bit == 1 {
+                    min_lon = mid;
+                } else {
+                    max_lon = mid;
+                }
+            } else {
+                mid = (max_lat + min_lat) / 2f64;
 
-//                 if bit == 1 {
-//                     min_lat = mid;
-//                 } else {
-//                     max_lat = mid;
-//                 }
-//             }
-//             is_lon = !is_lon;
-//         }
-//     }
+                if bit == 1 {
+                    min_lat = mid;
+                } else {
+                    max_lat = mid;
+                }
+            }
+            is_lon = !is_lon;
+        }
+    }
 
-//     Ok(Rect::new(
-//         Coordinate {
-//             x: min_lon,
-//             y: min_lat,
-//         },
-//         Coordinate {
-//             x: max_lon,
-//             y: max_lat,
-//         },
-//     ))
-// }
+    Ok(Rect::new(
+        Coordinate {
+            x: min_lon,
+            y: min_lat,
+        },
+        Coordinate {
+            x: max_lon,
+            y: max_lat,
+        },
+    ))
+}
 
 fn hash_value_of_char(c: char) -> Result<usize, GeohashError> {
     let ord = c as usize;
@@ -328,6 +340,20 @@ fn hash_value_of_char(c: char) -> Result<usize, GeohashError> {
 ///     ),
 /// );
 /// ```
+pub fn old_decode(hash_str: &str) -> Result<(Coordinate<f64>, f64, f64), GeohashError> {
+    let rect = old_decode_bbox(hash_str)?;
+    let c0 = rect.min();
+    let c1 = rect.max();
+    Ok((
+        Coordinate {
+            x: (c0.x + c1.x) / 2f64,
+            y: (c0.y + c1.y) / 2f64,
+        },
+        (c1.x - c0.x) / 2f64,
+        (c1.y - c0.y) / 2f64,
+    ))
+}
+
 pub fn decode(hash_str: &str) -> Result<(Coordinate<f64>, f64, f64), GeohashError> {
     let rect = decode_bbox(hash_str)?;
     let c0 = rect.min();
@@ -351,6 +377,16 @@ pub fn neighbor(hash_str: &str, direction: Direction) -> Result<String, GeohashE
         y: coord.y + 2f64 * lat_err.abs() * dlat,
     };
     encode(neighbor_coord, hash_str.len())
+}
+
+pub fn old_neighbor(hash_str: &str, direction: Direction) -> Result<String, GeohashError> {
+    let (coord, lon_err, lat_err) = old_decode(hash_str)?;
+    let (dlat, dlng) = direction.to_tuple();
+    let neighbor_coord = Coordinate {
+        x: coord.x + 2f64 * lon_err.abs() * dlng,
+        y: coord.y + 2f64 * lat_err.abs() * dlat,
+    };
+    old_encode(neighbor_coord, hash_str.len())
 }
 
 /// Find all neighboring geohashes for the given geohash.
@@ -386,5 +422,18 @@ pub fn neighbors(hash_str: &str) -> Result<Neighbors, GeohashError> {
         nw: neighbor(hash_str, Direction::NW)?,
         n: neighbor(hash_str, Direction::N)?,
         ne: neighbor(hash_str, Direction::NE)?,
+    })
+}
+
+pub fn old_neighbors(hash_str: &str) -> Result<Neighbors, GeohashError> {
+    Ok(Neighbors {
+        sw: old_neighbor(hash_str, Direction::SW)?,
+        s: old_neighbor(hash_str, Direction::S)?,
+        se: old_neighbor(hash_str, Direction::SE)?,
+        w: old_neighbor(hash_str, Direction::W)?,
+        e: old_neighbor(hash_str, Direction::E)?,
+        nw: old_neighbor(hash_str, Direction::NW)?,
+        n: old_neighbor(hash_str, Direction::N)?,
+        ne: old_neighbor(hash_str, Direction::NE)?,
     })
 }

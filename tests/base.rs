@@ -18,9 +18,17 @@ fn test_encode() {
 
     let c2 = Coordinate {
         x: 190f64,
-        y: -100f64,
+        y: -80f64,
     };
     assert!(encode(c2, 3usize).is_err());
+
+    let c3 = Coordinate {
+        x: 100f64,
+        y: -100f64,
+    };
+    assert!(encode(c3, 3usize).is_err());
+
+    assert!(encode(c1, 13).is_err());
 }
 
 fn compare_within(a: f64, b: f64, diff: f64) {
