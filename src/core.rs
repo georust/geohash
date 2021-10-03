@@ -95,7 +95,7 @@ pub fn encode(c: Coordinate<f64>, len: usize) -> Result<String, GeohashError> {
         return Err(GeohashError::InvalidCoordinateRange(c));
     }
 
-    if len < 1 || len > 12 {
+    if !(1..=12).contains(&len) {
         return Err(GeohashError::InvalidLength(len));
     }
 
