@@ -6,6 +6,7 @@ use geohash::{decode, encode, neighbors, Coordinate};
 use csv;
 use serde::Deserialize;
 
+// struct to allow for deserialization
 #[derive(Debug, Deserialize)]
 struct TestCase {
     string_hash: String,
@@ -72,19 +73,21 @@ fn compare_decode(gh: &str, exp_lon: f64, exp_lat: f64, exp_lon_err: f64, exp_la
 
 #[test]
 fn test_decode() {
+    // test decodes against the test cases file
+    let diff = 1e-5f64;
+    let mut rdr =
+        csv::Reader::from_path("tests/testcases.csv").expect("Failed to open file of test cases");
+    let mut iter = rdr.deserialize();
+    while let Some(result) = iter.next() {
+        let record: TestCase = result.expect("Unable to deserialize record");
+        let c = decode(&record.string_hash).unwrap();
+        compare_within(c.0.x, record.long, diff);
+        compare_within(c.0.y, record.lat, diff);
+    }
+
+    // run these as well, since the test against the csv doesn't testt he error ranges
     compare_decode("ww8p1r4t8", 112.558386, 37.832386, 0.000021457, 0.000021457);
     compare_decode("9g3q", -99.31640625, 19.423828125, 0.17578125, 0.087890625);
-
-    // let diff = 1e-5f64;
-    // let mut rdr =
-    //     csv::Reader::from_path("tests/testcases.csv").expect("Failed to open file of test cases");
-    // let mut iter = rdr.deserialize();
-    // while let Some(result) = iter.next() {
-    //     let record: TestCase = result.expect("Unable to deserialize record");
-    //     let c = decode(&record.string_hash).unwrap();
-    //     compare_within(c.0.x, record.long, diff);
-    //     compare_within(c.0.y, record.lat, diff);
-    // }
 
     // check for errors being thrown appropriately
 
