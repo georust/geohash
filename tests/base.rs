@@ -50,6 +50,20 @@ fn test_encode() {
         y: -100f64,
     };
     assert!(encode(c3, 3usize).is_err());
+
+    // should throw an error because the longitude is NAN
+    let c4 = Coordinate {
+        x: f64::NAN,
+        y: 50f64,
+    };
+    assert!(encode(c4, 4usize).is_err());
+
+    // should throw an error because the latitude is NAN
+    let c5 = Coordinate {
+        x: 100f64,
+        y: f64::NAN,
+    };
+    assert!(encode(c5, 4usize).is_err());
 }
 
 fn compare_within(a: f64, b: f64, diff: f64) {

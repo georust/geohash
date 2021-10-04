@@ -91,7 +91,7 @@ pub fn encode(c: Coordinate<f64>, len: usize) -> Result<String, GeohashError> {
     let max_lon = 180f64;
     let min_lon = -180f64;
 
-    if c.x < min_lon || c.x > max_lon || c.y < min_lat || c.y > max_lat {
+    if !(min_lon..=max_lon).contains(&c.x) || !(min_lat..=max_lat).contains(&c.y) {
         return Err(GeohashError::InvalidCoordinateRange(c));
     }
 
