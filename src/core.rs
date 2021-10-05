@@ -140,7 +140,6 @@ pub fn decode_bbox(hash_str: &str) -> Result<Rect<f64>, GeohashError> {
         ));
     }
 
-    
     let mut int_hash: u64 = 0;
     for c in hash_str.bytes() {
         // getting the value from the array converts from the base32 alphabet to an integer value
