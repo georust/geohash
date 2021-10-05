@@ -13,6 +13,9 @@ edition = "2018"
 
 [dependencies]
 geo-types = ">=0.6.0, <0.8.0"
+libm = "0.2.1"
 
 [dev-dependencies]
+csv = "1.1"
 num-traits = "0.2"
+serde = {version = "1", features = ["derive"]}
