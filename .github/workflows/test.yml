@@ -1,5 +1,11 @@
-on: push
 name: Run tests
+on:
+  # Only run when merging to master, or open/synchronize/reopen a PR.
+  push:
+    branches:
+      - master
+  pull_request:
+
 jobs:
   geohash:
     name: geohash
@@ -19,10 +25,8 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
           components: clippy,rustfmt
-      - run: cargo fmt -- --check            
+      - run: cargo fmt -- --check
       - run: cargo install cargo-all-features
       - run: cargo build-all-features
       - run: cargo test-all-features
       - run: cargo clippy --all-features
-
-    
