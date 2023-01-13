@@ -1,7 +1,7 @@
 extern crate geo_types;
 extern crate geohash;
 
-use geohash::{decode, encode, neighbors, Coordinate};
+use geohash::{decode, encode, neighbors, Coord};
 
 use csv;
 use serde::Deserialize;
@@ -22,7 +22,7 @@ fn test_encode() {
     let mut iter = rdr.deserialize();
     while let Some(result) = iter.next() {
         let record: TestCase = result.expect("Unable to deserialize record");
-        let c = Coordinate {
+        let c = Coord {
             x: record.long,
             y: record.lat,
         };
@@ -31,35 +31,35 @@ fn test_encode() {
     // check that errors are thrown appropriately
 
     // should throw an error because the length is greater than 12
-    let c1 = Coordinate {
+    let c1 = Coord {
         x: 117f64,
         y: 32f64,
     };
     assert!(encode(c1, 13).is_err());
 
     // should throw an error because the longitude is out of range
-    let c2 = Coordinate {
+    let c2 = Coord {
         x: 190f64,
         y: -80f64,
     };
     assert!(encode(c2, 3usize).is_err());
 
     // should throw an error because the latitude is out of range
-    let c3 = Coordinate {
+    let c3 = Coord {
         x: 100f64,
         y: -100f64,
     };
     assert!(encode(c3, 3usize).is_err());
 
     // should throw an error because the longitude is NAN
-    let c4 = Coordinate {
+    let c4 = Coord {
         x: f64::NAN,
         y: 50f64,
     };
     assert!(encode(c4, 4usize).is_err());
 
     // should throw an error because the latitude is NAN
-    let c5 = Coordinate {
+    let c5 = Coord {
         x: 100f64,
         y: f64::NAN,
     };

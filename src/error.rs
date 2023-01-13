@@ -1,12 +1,12 @@
 use std::error::Error;
 use std::fmt;
 
-use crate::Coordinate;
+use crate::Coord;
 
 #[derive(Debug)]
 pub enum GeohashError {
     InvalidHashCharacter(char),
-    InvalidCoordinateRange(Coordinate<f64>),
+    InvalidCoordinateRange(Coord<f64>),
     InvalidLength(usize),
     InvalidHash(String),
 }

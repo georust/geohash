@@ -1,5 +1,5 @@
 use crate::neighbors::Direction;
-use crate::{Coordinate, GeohashError, Neighbors, Rect};
+use crate::{Coord, GeohashError, Neighbors, Rect};
 use libm::ldexp;
 
 // the alphabet for the base32 encoding used in geohashing
@@ -69,7 +69,7 @@ fn deinterleave(x: u64) -> (u32, u32) {
 /// Encoding a coordinate to a length five geohash:
 ///
 /// ```rust
-/// let coord = geohash::Coordinate { x: -120.6623, y: 35.3003 };
+/// let coord = geohash::Coord { x: -120.6623, y: 35.3003 };
 ///
 /// let geohash_string = geohash::encode(coord, 5).expect("Invalid coordinate");
 ///
@@ -79,13 +79,13 @@ fn deinterleave(x: u64) -> (u32, u32) {
 /// Encoding a coordinate to a length ten geohash:
 ///
 /// ```rust
-/// let coord = geohash::Coordinate { x: -120.6623, y: 35.3003 };
+/// let coord = geohash::Coord { x: -120.6623, y: 35.3003 };
 ///
 /// let geohash_string = geohash::encode(coord, 10).expect("Invalid coordinate");
 ///
 /// assert_eq!(geohash_string, "9q60y60rhs");
 /// ```
-pub fn encode(c: Coordinate<f64>, len: usize) -> Result<String, GeohashError> {
+pub fn encode(c: Coord<f64>, len: usize) -> Result<String, GeohashError> {
     let max_lat = 90f64;
     let min_lat = -90f64;
     let max_lon = 180f64;
@@ -181,8 +181,8 @@ fn bbox_int_with_precision(hash: u64, bits: u32) -> Rect<f64> {
     let (lat_err, long_err) = error_with_precision(bits);
 
     Rect::new(
-        Coordinate { x: long, y: lat },
-        Coordinate {
+        Coord { x: long, y: lat },
+        Coord {
             x: long + long_err,
             y: lat + lat_err,
         },
@@ -204,7 +204,7 @@ fn bbox_int_with_precision(hash: u64, bits: u32) -> Rect<f64> {
 /// assert_eq!(
 ///     decoded,
 ///     (
-///         geohash::Coordinate {
+///         geohash::Coord {
 ///             x: -120.65185546875,
 ///             y: 35.31005859375,
 ///         },
@@ -224,7 +224,7 @@ fn bbox_int_with_precision(hash: u64, bits: u32) -> Rect<f64> {
 /// assert_eq!(
 ///     decoded,
 ///     (
-///         geohash::Coordinate {
+///         geohash::Coord {
 ///             x: -120.66229999065399,
 ///             y: 35.300298035144806,
 ///         },
@@ -233,12 +233,12 @@ fn bbox_int_with_precision(hash: u64, bits: u32) -> Rect<f64> {
 ///     ),
 /// );
 /// ```
-pub fn decode(hash_str: &str) -> Result<(Coordinate<f64>, f64, f64), GeohashError> {
+pub fn decode(hash_str: &str) -> Result<(Coord<f64>, f64, f64), GeohashError> {
     let rect = decode_bbox(hash_str)?;
     let c0 = rect.min();
     let c1 = rect.max();
     Ok((
-        Coordinate {
+        Coord {
             x: (c0.x + c1.x) / 2f64,
             y: (c0.y + c1.y) / 2f64,
         },
@@ -264,7 +264,7 @@ pub fn decode(hash_str: &str) -> Result<(Coordinate<f64>, f64, f64), GeohashErro
 pub fn neighbor(hash_str: &str, direction: Direction) -> Result<String, GeohashError> {
     let (coord, lon_err, lat_err) = decode(hash_str)?;
     let (dlat, dlng) = direction.to_tuple();
-    let neighbor_coord = Coordinate {
+    let neighbor_coord = Coord {
         x: coord.x + 2f64 * lon_err.abs() * dlng,
         y: coord.y + 2f64 * lat_err.abs() * dlat,
     };
