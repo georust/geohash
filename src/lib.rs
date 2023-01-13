@@ -12,11 +12,11 @@
 //!
 //! use std::error::Error;
 //!
-//! use geohash::{encode, decode, neighbor, Direction, Coordinate};
+//! use geohash::{encode, decode, neighbor, Direction, Coord};
 //!
 //! fn main() -> Result<(), Box<Error>> {
 //!   // encode a coordinate
-//!   let c = Coordinate { x: 112.5584f64, y: 37.8324f64 };
+//!   let c = Coord { x: 112.5584f64, y: 37.8324f64 };
 //!   println!("encoding 37.8324, 112.5584: {}", encode(c, 9usize)?);
 //!
 //!   // decode a geohash
@@ -42,4 +42,4 @@ mod neighbors;
 pub use crate::core::{decode, decode_bbox, encode, neighbor, neighbors};
 pub use crate::error::GeohashError;
 pub use crate::neighbors::{Direction, Neighbors};
-pub use geo_types::{Coordinate, Rect};
+pub use geo_types::{Coord, Rect};
