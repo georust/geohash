@@ -31,10 +31,6 @@
 //! ```
 //!
 
-extern crate geo_types;
-#[cfg(test)]
-extern crate num_traits;
-
 mod core;
 mod error;
 mod neighbors;

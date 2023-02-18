@@ -4,7 +4,7 @@ extern crate geo_types;
 extern crate geohash;
 extern crate test;
 
-use geo_types::Coordinate;
+use geo_types::Coord;
 use geohash::{decode, encode, neighbor, neighbors, Direction};
 use test::Bencher;
 
@@ -13,7 +13,7 @@ fn benchmark_encode(b: &mut Bencher) {
     let x = 4.456758;
     let y = -11.11385758;
 
-    let coordinate = Coordinate { x, y };
+    let coordinate = Coord { x, y };
 
     b.iter(|| {
         encode(coordinate, 6).expect("The Coordinates were not possible");

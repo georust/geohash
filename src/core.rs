@@ -3,32 +3,62 @@ use crate::{Coord, GeohashError, Neighbors, Rect};
 use libm::ldexp;
 
 // the alphabet for the base32 encoding used in geohashing
-static BASE32_CODES: &[char] = &[
-    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j', 'k',
-    'm', 'n', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+#[rustfmt::skip]
+const BASE32_CODES: [char; 32] = [
+    '0', '1', '2', '3', '4', '5', '6', '7',
+    '8', '9', 'b', 'c', 'd', 'e', 'f', 'g',
+    'h', 'j', 'k', 'm', 'n', 'p', 'q', 'r',
+    's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
 ];
 
 // array that is indexed into to get the value of a character in our base32 alphabet
-static DECODER: &[u8] = &[
-    255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-    255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-    255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 255, 255, 255,
-    255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-    255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 10,
-    11, 12, 13, 14, 15, 16, 255, 17, 18, 255, 19, 20, 255, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
-    31, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-    255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-    255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-    255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-    255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-    255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-    255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-    255,
+#[rustfmt::skip]
+const DECODER: [u8; 256] = [
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+    0x08, 0x09, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+
+    0xff, 0xff, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+    0x10, 0xff, 0x11, 0x12, 0xff, 0x13, 0x14, 0xff,
+    0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c,
+    0x1d, 0x1e, 0x1f, 0xff, 0xff, 0xff, 0xff, 0xff,
+
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
 ];
 
 // bit shifting functions used in encoding and decoding
 
 // spread takes a u32 and deposits its bits into the evenbit positions of a u64
+#[inline]
 fn spread(x: u32) -> u64 {
     let mut new_x = x as u64;
     new_x = (new_x | (new_x << 16)) & 0x0000ffff0000ffff;
@@ -41,11 +71,13 @@ fn spread(x: u32) -> u64 {
 }
 
 // spreads the inputs, then shifts the y input and does a bitwise or to fill the remaining bits in x
+#[inline]
 fn interleave(x: u32, y: u32) -> u64 {
     spread(x) | (spread(y) << 1)
 }
 
 // squashes the even bit positions of a u64 into a u32
+#[inline]
 fn squash(x: u64) -> u32 {
     let mut new_x = x & 0x5555555555555555;
     new_x = (new_x | (new_x >> 1)) & 0x3333333333333333;
@@ -58,6 +90,7 @@ fn squash(x: u64) -> u32 {
 
 // uses the squash function to create a 32 from the even bits
 // then shifts the input right and squashes to create a u32 from the odd bits
+#[inline]
 fn deinterleave(x: u64) -> (u32, u32) {
     (squash(x), squash(x >> 1))
 }
@@ -113,7 +146,7 @@ pub fn encode(c: Coord<f64>, len: usize) -> Result<String, GeohashError> {
         // shifts so that the high 5 bits are now the low five bits, then masks to get their value
         let code = (interleaved_int >> 59) as usize & (0x1f);
         // uses that value to index into the array of base32 codes
-        out.push(BASE32_CODES[(code) as usize]);
+        out.push(BASE32_CODES[code]);
         // shifts the interleaved bits left by 5, so we get the next 5 bits on the next iteration
         interleaved_int <<= 5;
     }

@@ -1,9 +1,4 @@
-extern crate geo_types;
-extern crate geohash;
-
 use geohash::{decode, encode, neighbors, Coord};
-
-use csv;
 use serde::Deserialize;
 
 // struct to allow for deserialization
@@ -19,8 +14,8 @@ fn test_encode() {
     // use the testcases file to check encoding correctness
     let mut rdr =
         csv::Reader::from_path("tests/testcases.csv").expect("Failed to open file of test cases");
-    let mut iter = rdr.deserialize();
-    while let Some(result) = iter.next() {
+    let iter = rdr.deserialize();
+    for result in iter {
         let record: TestCase = result.expect("Unable to deserialize record");
         let c = Coord {
             x: record.long,
@@ -91,8 +86,8 @@ fn test_decode() {
     let diff = 1e-5f64;
     let mut rdr =
         csv::Reader::from_path("tests/testcases.csv").expect("Failed to open file of test cases");
-    let mut iter = rdr.deserialize();
-    while let Some(result) = iter.next() {
+    let iter = rdr.deserialize();
+    for result in iter {
         let record: TestCase = result.expect("Unable to deserialize record");
         let c = decode(&record.string_hash).unwrap();
         compare_within(c.0.x, record.long, diff);
