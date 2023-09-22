@@ -5,6 +5,7 @@ authors = [ "Ning Sun <sunng@about.me>" ]
 description = "Geohash implementation for Rust."
 license = "MIT/Apache-2.0"
 keywords = ["geohash", "gis", "geography"]
+categories = [ "science::geo" ]
 repository = "https://github.com/georust/geohash.rs"
 readme = "README.md"
 documentation = "https://docs.rs/geohash/"
