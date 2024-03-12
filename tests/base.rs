@@ -118,6 +118,16 @@ fn test_neighbor() {
     assert_eq!(ns.nw, "ww8p1r4mz");
     assert_eq!(ns.n, "ww8p1r4tb");
     assert_eq!(ns.ne, "ww8p1r4tc");
+
+    let ns = neighbors("2hb").unwrap();
+    assert_eq!(ns.sw, "rux");
+    assert_eq!(ns.s, "2h8");
+    assert_eq!(ns.se, "2h9");
+    assert_eq!(ns.w, "ruz");
+    assert_eq!(ns.e, "2hc");
+    assert_eq!(ns.nw, "rvp");
+    assert_eq!(ns.n, "2j0");
+    assert_eq!(ns.ne, "2j1");
 }
 
 #[test]

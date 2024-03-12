@@ -298,8 +298,8 @@ pub fn neighbor(hash_str: &str, direction: Direction) -> Result<String, GeohashE
     let (coord, lon_err, lat_err) = decode(hash_str)?;
     let (dlat, dlng) = direction.to_tuple();
     let neighbor_coord = Coord {
-        x: coord.x + 2f64 * lon_err.abs() * dlng,
-        y: coord.y + 2f64 * lat_err.abs() * dlat,
+        x: ((coord.x + 2f64 * lon_err.abs() * dlng) + 180.0).rem_euclid(360.0) - 180.0,
+        y: ((coord.y + 2f64 * lat_err.abs() * dlat) + 90.0).rem_euclid(180.0) - 90.0,
     };
     encode(neighbor_coord, hash_str.len())
 }
