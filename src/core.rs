@@ -132,10 +132,10 @@ pub fn encode(c: Coord<f64>, len: usize) -> Result<String, GeohashError> {
         return Err(GeohashError::InvalidLength(len));
     }
 
-    // divides the latitude by 90, then adds 1.5 to give a value between 1 and 2
+    // divides the latitude by 180, then adds 1.5 to give a value between 1 and 2
     // then we take the first 32 bits of the significand as a u32
     let lat32 = ((c.y * 0.005555555555555556 + 1.5).to_bits() >> 20) as u32;
-    // same as latitude, but a division by 180 instead of 90
+    // same as latitude, but a division by 360 instead of 180
     let lon32 = ((c.x * 0.002777777777777778 + 1.5).to_bits() >> 20) as u32;
 
     let mut interleaved_int = interleave(lat32, lon32);
