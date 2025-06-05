@@ -159,7 +159,7 @@ pub fn encode(c: Coord<f64>, len: usize) -> Result<String, GeohashError> {
 /// Geohash encoded `&str`
 ///
 /// Returns:
-/// A four-element tuple describs a bound box:
+/// A four-element tuple describes a bound box:
 /// * min_lat
 /// * max_lat
 /// * min_lon
@@ -177,7 +177,7 @@ pub fn decode_bbox(hash_str: &str) -> Result<Rect<f64>, GeohashError> {
     for c in hash_str.bytes() {
         // getting the value from the array converts from the base32 alphabet to an integer value
         let hash_value = DECODER[c as usize];
-        // this means that we have indexed into the psoition of an invalid character
+        // this means that we have indexed into the position of an invalid character
         if hash_value == 0xff {
             return Err(GeohashError::InvalidHashCharacter(c as char));
         }
