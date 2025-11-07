@@ -16,7 +16,7 @@ pub enum Direction {
     N,
     /// North-east
     NE,
-    /// Eeast
+    /// East
     E,
     /// South-east
     SE,
