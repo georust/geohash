@@ -1,5 +1,6 @@
 use crate::neighbors::Direction;
 use crate::{Coord, GeohashError, Neighbors, Rect};
+use alloc::string::{String, ToString};
 use libm::ldexp;
 
 // the alphabet for the base32 encoding used in geohashing
@@ -222,6 +223,18 @@ fn bbox_int_with_precision(hash: u64, bits: u32) -> Rect<f64> {
     )
 }
 
+#[cfg(not(feature = "std"))]
+// `f64::rem_euclid` is unavailable in no-std builds, so keep a small
+// equivalent helper for wrapping coordinates.
+fn rem_euclid(x: f64, rhs: f64) -> f64 {
+    let r = x % rhs;
+    if r < 0.0 {
+        r + rhs.abs()
+    } else {
+        r
+    }
+}
+
 /// Decode a geohash into a coordinate with some longitude/latitude error. The
 /// return value is `(<coordinate>, <longitude error>, <latitude error>)`.
 ///
@@ -297,6 +310,12 @@ pub fn decode(hash_str: &str) -> Result<(Coord<f64>, f64, f64), GeohashError> {
 pub fn neighbor(hash_str: &str, direction: Direction) -> Result<String, GeohashError> {
     let (coord, lon_err, lat_err) = decode(hash_str)?;
     let (dlat, dlng) = direction.to_tuple();
+    #[cfg(not(feature = "std"))]
+    let neighbor_coord = Coord {
+        x: rem_euclid((coord.x + 2f64 * lon_err.abs() * dlng) + 180.0, 360.0) - 180.0,
+        y: rem_euclid((coord.y + 2f64 * lat_err.abs() * dlat) + 90.0, 180.0) - 90.0,
+    };
+    #[cfg(feature = "std")]
     let neighbor_coord = Coord {
         x: ((coord.x + 2f64 * lon_err.abs() * dlng) + 180.0).rem_euclid(360.0) - 180.0,
         y: ((coord.y + 2f64 * lat_err.abs() * dlat) + 90.0).rem_euclid(180.0) - 90.0,

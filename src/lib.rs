@@ -1,4 +1,5 @@
 #![doc(html_root_url = "https://docs.rs/geohash/")]
+#![cfg_attr(not(feature = "std"), no_std)]
 
 //! # Geohash
 //!
@@ -30,6 +31,8 @@
 //! }
 //! ```
 //!
+
+extern crate alloc;
 
 mod core;
 mod error;

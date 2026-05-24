@@ -1,5 +1,5 @@
-use std::error::Error;
-use std::fmt;
+use alloc::string::String;
+use core::{error::Error, fmt};
 
 use crate::Coord;
 

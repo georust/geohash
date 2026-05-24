@@ -11,11 +11,15 @@ readme = "README.md"
 documentation = "https://docs.rs/geohash/"
 edition = "2018"
 
+[features]
+default = ["std"]
+std = ["geo-types/std"]
+
 [dependencies]
-geo-types = ">=0.6.0, <0.8.0"
+geo-types = {version = ">=0.6.0, <0.8.0", default-features = false}
 libm = "0.2.6"
 
 [dev-dependencies]
 csv = "1.2"
-num-traits = "0.2"
+num-traits = {version = "0.2", default-features = false, features = ["libm"]}
 serde = {version = "1", features = ["derive"]}

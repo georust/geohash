@@ -1,3 +1,5 @@
+use alloc::string::String;
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct Neighbors {
     pub sw: String,
