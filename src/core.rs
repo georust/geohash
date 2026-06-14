@@ -1,7 +1,10 @@
 use crate::neighbors::Direction;
 use crate::{Coord, GeohashError, Neighbors, Rect};
 use alloc::string::{String, ToString};
+use core::ops::Range;
 use libm::ldexp;
+
+const LEN_RANGE: Range<usize> = 1..13;
 
 // the alphabet for the base32 encoding used in geohashing
 #[rustfmt::skip]
@@ -120,6 +123,39 @@ fn deinterleave(x: u64) -> (u32, u32) {
 /// assert_eq!(geohash_string, "9q60y60rhs");
 /// ```
 pub fn encode(c: Coord<f64>, len: usize) -> Result<String, GeohashError> {
+    if !LEN_RANGE.contains(&len) {
+        return Err(GeohashError::InvalidLength(len));
+    }
+
+    Ok(encode_iter(c)?.take(len).collect())
+}
+
+/// Encode a coordinate to a geohash.
+///
+/// This can be used to avoid the allocation required for [`encode`].
+///
+/// ### Examples
+///
+/// Encoding a coordinate to a length five geohash:
+///
+/// ```rust
+/// let coord = geohash::Coord { x: -120.6623, y: 35.3003 };
+///
+/// let geohash_iter = geohash::encode_iter(coord).expect("Invalid coordinate");
+///
+/// assert_eq!(geohash_iter.take(5).collect::<Vec<_>>(), ['9', 'q', '6', '0', 'y']);
+/// ```
+///
+/// Encoding a coordinate to a geohash with the maximum supported length:
+///
+/// ```rust
+/// let coord = geohash::Coord { x: -120.6623, y: 35.3003 };
+///
+/// let geohash_iter = geohash::encode_iter(coord).expect("Invalid coordinate");
+///
+/// assert_eq!(geohash_iter.collect::<Vec<_>>(), ['9', 'q', '6', '0', 'y', '6', '0', 'r', 'h', 's', 'g', 'g']);
+/// ```
+pub fn encode_iter(c: Coord<f64>) -> Result<impl Iterator<Item = char>, GeohashError> {
     let max_lat = 90f64;
     let min_lat = -90f64;
     let max_lon = 180f64;
@@ -127,10 +163,6 @@ pub fn encode(c: Coord<f64>, len: usize) -> Result<String, GeohashError> {
 
     if !(min_lon..=max_lon).contains(&c.x) || !(min_lat..=max_lat).contains(&c.y) {
         return Err(GeohashError::InvalidCoordinateRange(c));
-    }
-
-    if !(1..=12).contains(&len) {
-        return Err(GeohashError::InvalidLength(len));
     }
 
     // divides the latitude by 180, then adds 1.5 to give a value between 1 and 2
@@ -141,17 +173,16 @@ pub fn encode(c: Coord<f64>, len: usize) -> Result<String, GeohashError> {
 
     let mut interleaved_int = interleave(lat32, lon32);
 
-    let mut out = String::with_capacity(len);
     // loop through and take the first 5 bits of the interleaved value ech iteration
-    for _ in 0..len {
+    Ok(LEN_RANGE.map(move |_| {
         // shifts so that the high 5 bits are now the low five bits, then masks to get their value
         let code = (interleaved_int >> 59) as usize & (0x1f);
         // uses that value to index into the array of base32 codes
-        out.push(BASE32_CODES[code]);
+        let out = BASE32_CODES[code];
         // shifts the interleaved bits left by 5, so we get the next 5 bits on the next iteration
         interleaved_int <<= 5;
-    }
-    Ok(out)
+        out
+    }))
 }
 
 /// Decode geohash string into latitude, longitude
