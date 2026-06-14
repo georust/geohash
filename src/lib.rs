@@ -38,7 +38,7 @@ mod core;
 mod error;
 mod neighbors;
 
-pub use crate::core::{decode, decode_bbox, encode, neighbor, neighbors};
+pub use crate::core::{decode, decode_bbox, encode, encode_iter, neighbor, neighbors};
 pub use crate::error::GeohashError;
 pub use crate::neighbors::{Direction, Neighbors};
 pub use geo_types::{Coord, Rect};
