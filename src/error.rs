@@ -20,9 +20,9 @@ impl fmt::Display for GeohashError {
             }
             GeohashError::InvalidLength(len) => {
                 #[cfg(feature = "wide")]
-                let maximum = crate::core::WIDE_LEN_RANGE.end - 1;
+                let maximum = 25;
                 #[cfg(not(feature = "wide"))]
-                let maximum = crate::core::LEN_RANGE.end - 1;
+                let maximum = 12;
                 write!(
                     f,
                     "Invalid length specified: {}. Accepted values are between 1 and {}, inclusive",
