@@ -25,12 +25,16 @@ fn test_encode() {
     }
     // check that errors are thrown appropriately
 
-    // should throw an error because the length is greater than 12
+    // The default implementation supports up to 12 characters. The wide
+    // implementation extends this to 25 characters.
     let c1 = Coord {
         x: 117f64,
         y: 32f64,
     };
+    #[cfg(not(feature = "wide"))]
     assert!(encode(c1, 13).is_err());
+    #[cfg(feature = "wide")]
+    assert_eq!(encode(c1, 25).unwrap().len(), 25);
 
     // should throw an error because the longitude is out of range
     let c2 = Coord {
@@ -104,7 +108,27 @@ fn test_decode() {
     assert!(decode("abcd").is_err());
 
     // should throw an error since the input is too long
+    #[cfg(not(feature = "wide"))]
     assert!(decode("ww8p1r4t8ww8p1r4t8").is_err());
+    #[cfg(feature = "wide")]
+    assert!(decode("ww8p1r4t8ww8p1r4t8ww8p1r4t8ww8p1r4t8ww8p").is_err());
+}
+
+#[cfg(feature = "wide")]
+#[test]
+fn test_wide_hashes() {
+    let coordinate = Coord {
+        x: -120.6623,
+        y: 35.3003,
+    };
+    let narrow = encode(coordinate, 12).unwrap();
+    let wide = encode(coordinate, 25).unwrap();
+
+    assert_eq!(wide.len(), 25);
+    assert_eq!(&wide[..12], narrow);
+    assert!(decode(&wide).is_ok());
+    assert!(encode(coordinate, 26).is_err());
+    assert!(decode(&(wide + "0")).is_err());
 }
 
 #[test]
