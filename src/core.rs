@@ -199,6 +199,12 @@ pub fn encode_iter(c: Coord<f64>) -> Result<impl Iterator<Item = char>, GeohashE
 pub fn decode_bbox(hash_str: &str) -> Result<Rect<f64>, GeohashError> {
     let bits = hash_str.len() * 5;
 
+    if hash_str.is_empty() {
+        return Err(GeohashError::InvalidHash(
+            "Hash string must not be empty".to_string(),
+        ));
+    }
+
     if hash_str.len() > 12 {
         return Err(GeohashError::InvalidHash(
             "Length of hash string greater than maximum allowed length".to_string(),
