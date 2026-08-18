@@ -18,11 +18,17 @@ impl fmt::Display for GeohashError {
             GeohashError::InvalidCoordinateRange(c) => {
                 write!(f, "invalid coordinate range: {:?}", c)
             }
-            GeohashError::InvalidLength(len) => write!(
-                f,
-                "Invalid length specified: {}. Accepted values are between 1 and 12, inclusive",
-                len
-            ),
+            GeohashError::InvalidLength(len) => {
+                #[cfg(feature = "wide")]
+                let maximum = 25;
+                #[cfg(not(feature = "wide"))]
+                let maximum = 12;
+                write!(
+                    f,
+                    "Invalid length specified: {}. Accepted values are between 1 and {}, inclusive",
+                    len, maximum
+                )
+            }
             GeohashError::InvalidHash(msg) => write!(f, "Invalid input hash: {}", msg),
         }
     }

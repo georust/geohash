@@ -4,7 +4,9 @@ use alloc::string::{String, ToString};
 use core::ops::Range;
 use libm::ldexp;
 
-const LEN_RANGE: Range<usize> = 1..13;
+pub(crate) const LEN_RANGE: Range<usize> = 1..13;
+#[cfg(feature = "wide")]
+pub(crate) const WIDE_LEN_RANGE: Range<usize> = 1..26;
 
 // the alphabet for the base32 encoding used in geohashing
 #[rustfmt::skip]
@@ -99,6 +101,29 @@ fn deinterleave(x: u64) -> (u32, u32) {
     (squash(x), squash(x >> 1))
 }
 
+#[cfg(feature = "wide")]
+#[inline]
+fn interleave_wide(x: u64, y: u64) -> u128 {
+    let mut out = 0u128;
+    for bit in 0..64 {
+        out |= ((x >> (63 - bit)) as u128 & 1) << (126 - 2 * bit);
+        out |= ((y >> (63 - bit)) as u128 & 1) << (127 - 2 * bit);
+    }
+    out
+}
+
+#[cfg(feature = "wide")]
+#[inline]
+fn deinterleave_wide(x: u128) -> (u64, u64) {
+    let mut lat = 0u64;
+    let mut lon = 0u64;
+    for bit in 0..64 {
+        lat |= ((x >> (126 - 2 * bit)) as u64 & 1) << (63 - bit);
+        lon |= ((x >> (127 - 2 * bit)) as u64 & 1) << (63 - bit);
+    }
+    (lat, lon)
+}
+
 /// Encode a coordinate to a geohash with length `len`.
 ///
 /// ### Examples
@@ -123,6 +148,14 @@ fn deinterleave(x: u64) -> (u32, u32) {
 /// assert_eq!(geohash_string, "9q60y60rhs");
 /// ```
 pub fn encode(c: Coord<f64>, len: usize) -> Result<String, GeohashError> {
+    #[cfg(feature = "wide")]
+    if len >= LEN_RANGE.end {
+        if !WIDE_LEN_RANGE.contains(&len) {
+            return Err(GeohashError::InvalidLength(len));
+        }
+        return Ok(encode_iter_wide(c)?.take(len).collect());
+    }
+
     if !LEN_RANGE.contains(&len) {
         return Err(GeohashError::InvalidLength(len));
     }
@@ -185,6 +218,36 @@ pub fn encode_iter(c: Coord<f64>) -> Result<impl Iterator<Item = char>, GeohashE
     }))
 }
 
+#[cfg(feature = "wide")]
+fn encode_iter_wide(c: Coord<f64>) -> Result<impl Iterator<Item = char>, GeohashError> {
+    let max_lat = 90f64;
+    let min_lat = -90f64;
+    let max_lon = 180f64;
+    let min_lon = -180f64;
+
+    if !(min_lon..=max_lon).contains(&c.x) || !(min_lat..=max_lat).contains(&c.y) {
+        return Err(GeohashError::InvalidCoordinateRange(c));
+    }
+
+    // Keep the same normalized values as the narrow implementation, but retain
+    // all 52 meaningful fraction bits from the f64 representation. The extra
+    // bits make hashes longer than 12 characters possible without changing the
+    // hashes produced by the default implementation.
+    let lat_bits = (c.y * (1.0 / 180.0) + 1.5).to_bits();
+    let lon_bits = (c.x * (1.0 / 360.0) + 1.5).to_bits();
+    // The upper 32 bits deliberately match the narrow representation. The
+    // remaining 20 source bits are carried in the lower portion, followed by
+    // zero padding because f64 has no more precision to contribute.
+    let lat = (lat_bits >> 20) << 32 | (lat_bits & ((1u64 << 20) - 1)) << 12;
+    let lon = (lon_bits >> 20) << 32 | (lon_bits & ((1u64 << 20) - 1)) << 12;
+    let interleaved_int = interleave_wide(lat, lon);
+
+    Ok(WIDE_LEN_RANGE.map(move |index| {
+        let shift = 128 - 5 * index;
+        BASE32_CODES[((interleaved_int >> shift) as usize) & 0x1f]
+    }))
+}
+
 /// Decode geohash string into latitude, longitude
 ///
 /// Parameters:
@@ -199,12 +262,22 @@ pub fn encode_iter(c: Coord<f64>) -> Result<impl Iterator<Item = char>, GeohashE
 pub fn decode_bbox(hash_str: &str) -> Result<Rect<f64>, GeohashError> {
     let bits = hash_str.len() * 5;
 
-    if hash_str.len() > 12 {
+    #[cfg(not(feature = "wide"))]
+    if hash_str.len() >= LEN_RANGE.end {
+        return Err(GeohashError::InvalidHash(
+            "Length of hash string greater than maximum allowed length".to_string(),
+        ));
+    }
+    #[cfg(feature = "wide")]
+    if hash_str.len() >= WIDE_LEN_RANGE.end {
         return Err(GeohashError::InvalidHash(
             "Length of hash string greater than maximum allowed length".to_string(),
         ));
     }
 
+    #[cfg(feature = "wide")]
+    let mut int_hash: u128 = 0;
+    #[cfg(not(feature = "wide"))]
     let mut int_hash: u64 = 0;
     for c in hash_str.bytes() {
         // getting the value from the array converts from the base32 alphabet to an integer value
@@ -215,10 +288,28 @@ pub fn decode_bbox(hash_str: &str) -> Result<Rect<f64>, GeohashError> {
         }
         // shift int_hash and deposit the newly decoded bits into its lowest bits
         int_hash <<= 5;
-        int_hash |= hash_value as u64;
+        #[cfg(feature = "wide")]
+        {
+            int_hash |= hash_value as u128;
+        }
+        #[cfg(not(feature = "wide"))]
+        {
+            int_hash |= hash_value as u64;
+        }
     }
 
-    Ok(bbox_int_with_precision(int_hash, bits as u32))
+    #[cfg(feature = "wide")]
+    if hash_str.len() >= LEN_RANGE.end {
+        return Ok(bbox_int_with_precision_wide(int_hash, bits as u32));
+    }
+    #[cfg(feature = "wide")]
+    {
+        Ok(bbox_int_with_precision(int_hash as u64, bits as u32))
+    }
+    #[cfg(not(feature = "wide"))]
+    {
+        Ok(bbox_int_with_precision(int_hash, bits as u32))
+    }
 }
 
 fn decode_range(x: u32, r: f64) -> f64 {
@@ -252,6 +343,30 @@ fn bbox_int_with_precision(hash: u64, bits: u32) -> Rect<f64> {
             y: lat + lat_err,
         },
     )
+}
+
+#[cfg(feature = "wide")]
+fn bbox_int_with_precision_wide(hash: u128, bits: u32) -> Rect<f64> {
+    let full_hash = hash << (128 - bits);
+    let (lat_int, long_int) = deinterleave_wide(full_hash);
+    let lat = decode_range_wide(lat_int, 90.0);
+    let long = decode_range_wide(long_int, 180.0);
+    let (lat_err, long_err) = error_with_precision(bits);
+
+    Rect::new(
+        Coord { x: long, y: lat },
+        Coord {
+            x: long + long_err,
+            y: lat + lat_err,
+        },
+    )
+}
+
+#[cfg(feature = "wide")]
+fn decode_range_wide(x: u64, r: f64) -> f64 {
+    let significand = ((x >> 11) & ((1u64 << 52) - 1)) | (1023u64 << 52);
+    let p = f64::from_bits(significand);
+    2.0 * r * (p - 1.0) - r
 }
 
 #[cfg(not(feature = "std"))]

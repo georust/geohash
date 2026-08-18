@@ -31,6 +31,11 @@
 //! }
 //! ```
 //!
+//! ## Wider hashes
+//! By default, [`encode`] and [`decode`] support geohashes from 1 to 12
+//! characters. Enable the optional `wide` feature when you need more up to 25
+//! characters.
+//!
 
 extern crate alloc;
 

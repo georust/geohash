@@ -29,6 +29,60 @@ fn benchmark_decode(b: &mut Bencher) {
     })
 }
 
+#[cfg(feature = "wide")]
+#[bench]
+fn benchmark_encode_wide_13(b: &mut Bencher) {
+    let coordinate = Coord {
+        x: 4.456758,
+        y: -11.11385758,
+    };
+
+    b.iter(|| {
+        encode(coordinate, 13).expect("The coordinates were not possible");
+    })
+}
+
+#[cfg(feature = "wide")]
+#[bench]
+fn benchmark_encode_wide_25(b: &mut Bencher) {
+    let coordinate = Coord {
+        x: 4.456758,
+        y: -11.11385758,
+    };
+
+    b.iter(|| {
+        encode(coordinate, 25).expect("The coordinates were not possible");
+    })
+}
+
+#[cfg(feature = "wide")]
+#[bench]
+fn benchmark_decode_wide_13(b: &mut Bencher) {
+    let coordinate = Coord {
+        x: 4.456758,
+        y: -11.11385758,
+    };
+    let hash = encode(coordinate, 13).expect("The coordinates were not possible");
+
+    b.iter(|| {
+        decode(&hash).expect("The hashstring was malformed");
+    })
+}
+
+#[cfg(feature = "wide")]
+#[bench]
+fn benchmark_decode_wide_25(b: &mut Bencher) {
+    let coordinate = Coord {
+        x: 4.456758,
+        y: -11.11385758,
+    };
+    let hash = encode(coordinate, 25).expect("The coordinates were not possible");
+
+    b.iter(|| {
+        decode(&hash).expect("The hashstring was malformed");
+    })
+}
+
 #[bench]
 fn benchmark_neighbor(b: &mut test::Bencher) {
     let hash = "9q60y60rhs";
