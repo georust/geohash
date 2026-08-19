@@ -1,4 +1,4 @@
-use geohash::{decode, encode, neighbors, Coord};
+use geohash::{decode, decode_bbox, encode, neighbors, Coord};
 use serde::Deserialize;
 
 // struct to allow for deserialization
@@ -105,6 +105,10 @@ fn test_decode() {
 
     // should throw an error since the input is too long
     assert!(decode("ww8p1r4t8ww8p1r4t8").is_err());
+
+    // an empty hash string is invalid and must not panic
+    assert!(decode("").is_err());
+    assert!(decode_bbox("").is_err());
 }
 
 #[test]
