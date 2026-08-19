@@ -99,6 +99,19 @@ fn deinterleave(x: u64) -> (u32, u32) {
     (squash(x), squash(x >> 1))
 }
 
+// Reads the top 32 significand bits of a coordinate mapped into [1, 2]. At the
+// maximum coordinate (and its f64 predecessor) the value rounds to exactly 2.0,
+// whose significand bits are zero, which would wrap the top edge onto the bottom
+// cell (#52); clamp anything that reaches the top of the window to the top cell.
+#[inline]
+fn quantize(v: f64) -> u32 {
+    if v >= 2.0 {
+        u32::MAX
+    } else {
+        (v.to_bits() >> 20) as u32
+    }
+}
+
 /// Encode a coordinate to a geohash with length `len`.
 ///
 /// ### Examples
@@ -167,9 +180,9 @@ pub fn encode_iter(c: Coord<f64>) -> Result<impl Iterator<Item = char>, GeohashE
 
     // divides the latitude by 180, then adds 1.5 to give a value between 1 and 2
     // then we take the first 32 bits of the significand as a u32
-    let lat32 = ((c.y * 0.005555555555555556 + 1.5).to_bits() >> 20) as u32;
+    let lat32 = quantize(c.y * 0.005555555555555556 + 1.5);
     // same as latitude, but a division by 360 instead of 180
-    let lon32 = ((c.x * 0.002777777777777778 + 1.5).to_bits() >> 20) as u32;
+    let lon32 = quantize(c.x * 0.002777777777777778 + 1.5);
 
     let mut interleaved_int = interleave(lat32, lon32);
 

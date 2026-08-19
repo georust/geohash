@@ -61,6 +61,67 @@ fn test_encode() {
     assert!(encode(c5, 4usize).is_err());
 }
 
+#[test]
+fn test_encode_max_boundary() {
+    // The inclusive maximum coordinates used to wrap onto the opposite corner
+    // (#52). They must map to the top cell instead; reference strings come from
+    // the standard base32 bisection.
+    let cases = [
+        (90.0, 180.0, "zzzzzzzzzzzz"),
+        (90.0, 0.0, "upbpbpbpbpbp"),
+        (0.0, 180.0, "xbpbpbpbpbpb"),
+        (90.0, -180.0, "bpbpbpbpbpbp"),
+        (-90.0, 180.0, "pbpbpbpbpbpb"),
+        (-90.0, -180.0, "000000000000"),
+    ];
+    for (lat, lon, expected) in cases {
+        assert_eq!(encode(Coord { x: lon, y: lat }, 12).unwrap(), expected);
+    }
+
+    // The f64 predecessor of the max rounds to the same value and must also land
+    // in the top cell rather than wrap to "000...".
+    let pred = |x: f64| f64::from_bits(x.to_bits() - 1);
+    assert_eq!(
+        encode(
+            Coord {
+                x: 180.0,
+                y: pred(90.0),
+            },
+            12
+        )
+        .unwrap(),
+        "zzzzzzzzzzzz"
+    );
+    assert_eq!(
+        encode(
+            Coord {
+                x: pred(180.0),
+                y: 90.0,
+            },
+            12
+        )
+        .unwrap(),
+        "zzzzzzzzzzzz"
+    );
+
+    // The corner round-trips back near (90, 180), not (-90, -180).
+    let (corner, _, _) = decode("zzzzzzzzzzzz").unwrap();
+    assert!(corner.x > 179.9 && corner.y > 89.9, "{:?}", corner);
+
+    // Interior encoding is unchanged.
+    assert_eq!(
+        encode(
+            Coord {
+                x: -120.6623,
+                y: 35.3003
+            },
+            12
+        )
+        .unwrap(),
+        "9q60y60rhsgg"
+    );
+}
+
 fn compare_within(a: f64, b: f64, diff: f64) {
     assert!(
         (a - b).abs() < diff,
